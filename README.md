@@ -1,0 +1,130 @@
+# भारत | BHARAT — Digital Heritage of India
+
+**Smart India Hackathon — Student Innovation Prototype**
+
+> *Preserve the Past. Explore the Present. Inspire the Future.*
+
+A visually immersive, fully responsive website prototype that puts **India's
+cultural heritage first** and uses modern web technology as the enabler:
+an interactive regional explorer, a story museum, a festival explorer, a
+heritage quiz, a cultural timeline and a Heritage AI assistant.
+
+---
+
+## Run it
+
+No build step, no dependencies — pure HTML5 + CSS3 + Vanilla JavaScript.
+
+```bash
+# Option 1: just open it
+open index.html
+
+# Option 2: local server (recommended)
+python3 -m http.server 8000
+# → http://localhost:8000
+```
+
+## Project structure
+
+```text
+index.html      — all website sections
+style.css       — full design system (variables → sections → responsive → a11y)
+script.js       — all interactivity (preloader → explorers → quiz → Heritage AI)
+assets/img/     — cultural artwork (AI-generated + themed fallbacks)
+tools/          — gen_placeholders.py (fallback image generator, not part of the site)
+```
+
+## Sections
+
+| # | Section | What it does |
+|---|---------|--------------|
+| 1 | Preloader | Rotating mandala, glowing diya, loading ring — fades into the hero |
+| 2 | Navbar | Glass navigation, scroll transform, active-section highlighting, hamburger menu |
+| 3 | Hero | "India: A Living Heritage" — heritage imagery first, never AI |
+| 4 | Our Heritage | 12 dimensions of India's cultural richness |
+| 5 | Categories | "Many Traditions. One Heritage." — 6 major categories |
+| 6 | Explore India | **Main feature**: interactive stylised map → 6 regions × 10 cultural fields, no page reload |
+| 7 | Stories | "Every Tradition Has a Story" — scroll-based digital museum |
+| 8 | Knowledge | "Knowledge Passed Through Generations" (carefully worded, no medical claims) |
+| 9 | Art & Crafts | "Hands That Preserve History" — 8-craft museum gallery with hover zoom/overlay |
+| 10 | Festivals | "India Celebrates Diversity" — 10-festival explorer |
+| 11 | Digital Preservation | Discover / Learn / Preserve |
+| 12 | Our Innovation | 3 SIH innovation cards (kept visually smaller — culture is the hero) |
+| 13 | Quiz | 10-question multiple-choice heritage quiz with score, progress, feedback, restart |
+| 14 | Timeline | "A Journey Through India's Heritage" — 7 broad historical periods |
+| 15 | About | Problem → Heritage → Preservation → Exploration → Innovation → AI-assisted learning |
+| 16 | Heritage AI | Floating diya chat button (bottom-right) with cultural chat UI |
+
+## Heritage AI — two modes
+
+### Demo mode (default — what you have now)
+
+`GEMINI.endpoint` in `script.js` is empty, so the assistant answers with a
+curated offline answer bank (24 cultural topics + graceful fallback).
+This is the recommended mode for the SIH demo: **no key, no network, always works.**
+
+### Live mode (optional — Gemini integration)
+
+The `GEMINI` config block in `script.js` (section 12) has a clearly marked
+**API key placeholder**:
+
+```js
+const GEMINI = {
+    apiKey:          "YOUR_GEMINI_API_KEY_HERE", // ← paste your key for a local demo
+    model:           "gemini-2.0-flash",
+    maxOutputTokens: 200,                        // ← hard cap per reply (~150 words)
+    endpoint:        "",                         // ← or set your secure proxy URL
+    timeoutMs:       20000
+};
+```
+
+Two ways to go live:
+
+1. **Quick local demo** — paste your Gemini API key into `GEMINI.apiKey`.
+   The site then calls the Gemini REST API directly (the model and system
+   prompt are also configured there). ⚠️ A key in the frontend is visible
+   in the page source — fine for your own machine, **not for public hosting**.
+2. **Recommended (public/production)** — deploy a tiny serverless function
+   (Cloud Run / Cloud Functions / any server) that receives
+   `POST { messages: [{role, content}] }`, reads `GEMINI_API_KEY` **only from
+   its own environment variables**, calls Gemini (applying the same concise
+   system prompt and `maxOutputTokens` cap server-side), and replies with
+   `{ "reply": "..." }`. Then set `GEMINI.endpoint` to that URL and leave
+   `apiKey` as the placeholder.
+
+```text
+User → Heritage Website → Secure API Endpoint (your proxy) → Gemini API → response
+```
+
+**Limits:** this site imposes **no artificial message cap** — you can keep
+chatting for as long as your Gemini project's own quota allows
+(requests/minute, tokens/minute, requests/day). To make the chat feel
+seamless and "unlimited":
+
+- answers are kept short by design: the system prompt asks for **≤ 60
+  words ("only the words required")** and `maxOutputTokens: 200` is a hard
+  cap the model can't exceed; the context window is short (last 10
+  messages) and each input is capped at 800 characters — all so the token
+  quota serves as many messages as possible;
+- when Gemini returns a rate limit (429 / 403 / `RESOURCE_EXHAUSTED`), the
+  assistant **waits for the API's suggested reset window (≤ 30s) and
+  retries once automatically** — brief quota pauses don't break the
+  conversation;
+- only if the retry is also limited does it show:
+  *"Heritage AI has temporarily reached its Gemini API usage limit. Please try again later."*
+
+Gemini's limits are never bypassed — the design waits for them to reset.
+
+## Notes
+
+- Images in `assets/img`: the hero, six category cards and three crafts are
+  AI-generated artwork; the remaining files are on-brand themed placeholders
+  (mandala + diya motifs) generated by `tools/gen_placeholders.py` because the
+  image-generation quota was exhausted during the build. Replacing any
+  placeholder with real artwork (same filename) is a drop-in upgrade —
+  regenerate placeholders any time with `python3 tools/gen_placeholders.py`
+  (it never overwrites existing files).
+- This is a **working prototype / proposed digital solution** — it does not
+  claim the problem is solved at national scale.
+- No frameworks, no libraries, no build tools. `prefers-reduced-motion` is
+  respected; the site is keyboard-navigable with ARIA labels throughout.

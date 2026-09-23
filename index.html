@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="BHARAT — a Smart India Hackathon student innovation prototype. An interactive digital platform to discover, learn and help preserve India's rich cultural heritage." />
+    <meta name="theme-color" content="#0D1B33" />
+    <title>भारत | BHARAT — Digital Heritage of India</title>
+
+    <!--
+        Fonts
+        "Cormorant Garamond" — elegant display serif for headings.
+        "Mukta"               — clean body face that also renders Devanagari (भारत).
+        If fonts cannot load, robust system fallbacks are used (see style.css).
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Mukta:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body class="no-scroll">
+
+    <!--
+        SVG SPRITE
+        Shared symbols (mandala parts, diya lamp) defined once and reused
+        everywhere via <use href="...">. This keeps the HTML DRY and the
+        cultural motifs visually consistent across the whole site.
+    -->
+    <svg class="svg-sprite" aria-hidden="true" focusable="false" width="0" height="0">
+        <defs>
+            <!-- Outer mandala petal (rotated 12 times to form the mandala) -->
+            <g id="sprite-mandala-petal">
+                <path d="M120 24 C 132 48, 132 70, 120 84 C 108 70, 108 48, 120 24 Z" fill="none" stroke="currentColor" stroke-width="1.4"/>
+            </g>
+            <!-- Inner mandala petal (rotated 8 times) -->
+            <g id="sprite-mandala-inner">
+                <path d="M120 66 C 129 84, 129 100, 120 110 C 111 100, 111 84, 120 66 Z" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            </g>
+            <!-- Small dot used around the mandala rim -->
+            <g id="sprite-mandala-dot">
+                <circle cx="120" cy="12" r="2.6" fill="currentColor"/>
+            </g>
+            <!-- Diya — the oil lamp, a symbol of heritage and light -->
+            <g id="sprite-diya">
+                <path d="M60 12 C 71 29, 74 42, 60 55 C 46 42, 49 29, 60 12 Z" fill="#F2A93B"/>
+                <path d="M60 25 C 66.5 35.5, 67.5 44, 60 51 C 52.5 44, 53.5 35.5, 60 25 Z" fill="#FBE3A2"/>
+                <path d="M16 60 C 20 84, 37 97, 60 97 C 83 97, 100 84, 104 60 Z" fill="#8A4B22"/>
+                <ellipse cx="60" cy="60" rx="44" ry="9.5" fill="#C9A227"/>
+                <ellipse cx="60" cy="59" rx="36" ry="6.8" fill="#3E250F"/>
+            </g>
+        </defs>
+    </svg>
+
+    <!-- Skip link for keyboard users (jump straight to content) -->
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <!--
+        Cinematic Cultural Preloader
+        A rotating mandala, a glowing diya and a loading ring carry the
+        visitor from darkness into the hero section. Pure CSS/SVG — no video.
+    -->
+    <div class="preloader" id="preloader" aria-hidden="true">
+        <div class="preloader__stage">
+            <svg class="preloader__mandala" viewBox="0 0 240 240" aria-hidden="true">
+                <circle cx="120" cy="120" r="116" fill="none" stroke="currentColor" stroke-width="1" opacity=".35"/>
+                <circle cx="120" cy="120" r="96" fill="none" stroke="currentColor" stroke-width="1"/>
+                <circle cx="120" cy="120" r="60" fill="none" stroke="currentColor" stroke-width="1" opacity=".7"/>
+                <circle cx="120" cy="120" r="26" fill="none" stroke="currentColor" stroke-width="1.2"/>
+                <g class="preloader__petals">
+                    <use href="#sprite-mandala-petal"/>
+                    <use href="#sprite-mandala-petal" transform="rotate(30 120 120)"/>
+                    <use href="#sprite-mandala-petal" transform="rotate(60 120 120)"/>
+                    <use href="#sprite-mandala-petal" transform="rotate(90 120 120)"/>
+                    <use href="#sprite-mandala-petal" transform="rotate(120 120 120)"/>
+                    <use href="#sprite-mandala-petal" transform="rotate(150 120 120)"/>
+                    <use href="#sprite-mandala-petal" transform="rotate(180 120 120)"/>
+                    <use href="#sprite-mandala-petal" transform="rotate(210 120 120)"/>
+                    <use href="#sprite-mandala-petal" transform="rotate(240 120 120)"/>
+                    <use href="#sprite-mandala-petal" transform="rotate(270 120 120)"/>
+                    <use href="#sprite-mandala-petal" transform="rotate(300 120 120)"/>
+                    <use href="#sprite-mandala-petal" transform="rotate(330 120 120)"/>
+                </g>
+                <g class="preloader__inner">
+                    <use href="#sprite-mandala-inner"/>
+                    <use href="#sprite-mandala-inner" transform="rotate(45 120 120)"/>
+                    <use href="#sprite-mandala-inner" transform="rotate(90 120 120)"/>
+                    <use href="#sprite-mandala-inner" transform="rotate(135 120 120)"/>
+                    <use href="#sprite-mandala-inner" transform="rotate(180 120 120)"/>
+                    <use href="#sprite-mandala-inner" transform="rotate(225 120 120)"/>
+                    <use href="#sprite-mandala-inner" transform="rotate(270 120 120)"/>
+                    <use href="#sprite-mandala-inner" transform="rotate(315 120 120)"/>
+                </g>
+                <g class="preloader__dots">
+                    <use href="#sprite-mandala-dot"/>
+                    <use href="#sprite-mandala-dot" transform="rotate(30 120 120)"/>
+                    <use href="#sprite-mandala-dot" transform="rotate(60 120 120)"/>
+                    <use href="#sprite-mandala-dot" transform="rotate(90 120 120)"/>
+                    <use href="#sprite-mandala-dot" transform="rotate(120 120 120)"/>
+                    <use href="#sprite-mandala-dot" transform="rotate(150 120 120)"/>
+                    <use href="#sprite-mandala-dot" transform="rotate(180 120 120)"/>
+                    <use href="#sprite-mandala-dot" transform="rotate(210 120 120)"/>
+                    <use href="#sprite-mandala-dot" transform="rotate(240 120 120)"/>
+                    <use href="#sprite-mandala-dot" transform="rotate(270 120 120)"/>
+                    <use href="#sprite-mandala-dot" transform="rotate(300 120 120)"/>
+                    <use href="#sprite-mandala-dot" transform="rotate(330 120 120)"/>
+                </g>
+            </svg>
+            <div class="preloader__ring" aria-hidden="true"></div>
+            <svg class="preloader__diya" viewBox="0 0 120 110" aria-hidden="true">
+                <use href="#sprite-diya"/>
+            </svg>
+        </div>
+        <p class="preloader__title"><span class="preloader__dev">भारत</span><span class="preloader__sep">|</span><span class="preloader__lat">BHARAT</span></p>
+        <p class="preloader__tag">Discover India's Living Heritage</p>
+        <p class="preloader__sub">Where Tradition Meets Innovation</p>
+    </div>
+    <!-- If JavaScript is unavailable, hide the preloader so the page is usable. -->
+    <noscript><style>.preloader{display:none}.no-scroll{overflow:auto!important}</style></noscript>
+
+    <!--
+        Glass Navigation Bar
+        Fixed at the top; transforms to a frosted-glass bar on scroll.
+        Includes the 8 primary links and a responsive hamburger menu.
+    -->
+    <header class="navbar" id="navbar">
+        <nav class="navbar__inner container" aria-label="Primary navigation">
+            <a href="#home" class="navbar__logo" aria-label="BHARAT — back to top">
+                <span class="navbar__logo-dev" aria-hidden="true">भारत</span>
+                <span class="navbar__logo-sep" aria-hidden="true">|</span>
+                <span class="navbar__logo-latin">BHARAT</span>
+            </a>
+
+            <button class="navbar__toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
+                <span class="navbar__toggle-bar" aria-hidden="true"></span>
+                <span class="navbar__toggle-bar" aria-hidden="true"></span>
+                <span class="navbar__toggle-bar" aria-hidden="true"></span>
+            </button>
+
+            <ul class="navbar__menu" id="nav-menu">
+                <li><a class="nav-link is-active" href="#home">Home</a></li>
+                <li><a class="nav-link" href="#heritage">Our Heritage</a></li>
+                <li><a class="nav-link" href="#traditions">Traditions</a></li>
+                <li><a class="nav-link" href="#crafts">Art &amp; Crafts</a></li>
+                <li><a class="nav-link" href="#festivals">Festivals</a></li>
+                <li><a class="nav-link" href="#explore">Explore India</a></li>
+                <li><a class="nav-link" href="#innovation">Our Innovation</a></li>
+                <li><a class="nav-link" href="#about">About</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main id="main">
+
+        <!--
+            HERO — CULTURAL HERITAGE FIRST
+            The first thing a visitor sees is India itself: heritage
+            architecture, a classical dancer and festival light.
+            Technology is only revealed later in the journey.
+        -->
+        <section class="hero" id="home" aria-label="India — a living heritage">
+            <div class="hero__bg" aria-hidden="true"></div>
+            <div class="hero__overlay" aria-hidden="true"></div>
+            <div class="hero__pattern" aria-hidden="true"></div>
+
+            <!-- Decorative rotating mandalas, kept subtle so the imagery stays the focus -->
+            <svg class="hero__mandala hero__mandala--left" viewBox="0 0 240 240" aria-hidden="true">
+                <circle cx="120" cy="120" r="116" fill="none" stroke="currentColor" stroke-width="1" opacity=".4"/>
+                <circle cx="120" cy="120" r="96" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/>
+                <use href="#sprite-mandala-petal"/>
+                <use href="#sprite-mandala-petal" transform="rotate(30 120 120)"/>
+                <use href="#sprite-mandala-petal" transform="rotate(60 120 120)"/>
+                <use href="#sprite-mandala-petal" transform="rotate(90 120 120)"/>
+                <use href="#sprite-mandala-petal" transform="rotate(120 120 120)"/>
+                <use href="#sprite-mandala-petal" transform="rotate(150 120 120)"/>
+                <use href="#sprite-mandala-petal" transform="rotate(180 120 120)"/>
+                <use href="#sprite-mandala-petal" transform="rotate(210 120 120)"/>
+                <use href="#sprite-mandala-petal" transform="rotate(240 120 120)"/>
+                <use href="#sprite-mandala-petal" transform="rotate(270 120 120)"/>
+                <use href="#sprite-mandala-petal" transform="rotate(300 120 120)"/>
+                <use href="#sprite-mandala-petal" transform="rotate(330 120 120)"/>
+                <use href="#sprite-mandala-dot"/>
+                <use href="#sprite-mandala-dot" transform="rotate(30 120 120)"/>
+                <use href="#sprite-mandala-dot" transform="rotate(60 120 120)"/>
+                <use href="#sprite-mandala-dot" transform="rotate(90 120 120)"/>
+                <use href="#sprite-mandala-dot" transform="rotate(120 120 120)"/>
+                <use href="#sprite-mandala-dot" transform="rotate(150 120 120)"/>
+                <use href="#sprite-mandala-dot" transform="rotate(180 120 120)"/>
+                <use href="#sprite-mandala-dot" transform="rotate(210 120 120)"/>
+                <use href="#sprite-mandala-dot" transform="rotate(240 120 120)"/>
+                <use href="#sprite-mandala-dot" transform="rotate(270 120 120)"/>
+                <use href="#sprite-mandala-dot" transform="rotate(300 120 120)"/>
+                <use href="#sprite-mandala-dot" transform="rotate(330 120 120)"/>
+            </svg>
+            <svg class="hero__mandala hero__mandala--right" viewBox="0 0 240 240" aria-hidden="true">
+                <circle cx="120" cy="120" r="116" fill="none" stroke="currentColor" stroke-width="1" opacity=".4"/>
+                <circle cx="120" cy="120" r="78" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/>
+                <use href="#sprite-mandala-inner"/>
+                <use href="#sprite-mandala-inner" transform="rotate(45 120 120)"/>
+                <use href="#sprite-mandala-inner" transform="rotate(90 120 120)"/>
+                <use href="#sprite-mandala-inner" transform="rotate(135 120 120)"/>
+                <use href="#sprite-mandala-inner" transform="rotate(180 120 120)"/>
+                <use href="#sprite-mandala-inner" transform="rotate(225 120 120)"/>
+                <use href="#sprite-mandala-inner" transform="rotate(270 120 120)"/>
+                <use href="#sprite-mandala-inner" transform="rotate(315 120 120)"/>
+            </svg>
+
+            <div class="container hero__content">
+                <p class="hero__eyebrow" data-hero style="--i:0">भारत · A Digital Exploration of India's Cultural Heritage</p>
+                <h1 class="hero__title">
+                    <span class="hero__line" data-hero style="--i:1">India:</span>
+                    <span class="hero__line hero__line--accent" data-hero style="--i:2">A Living Heritage</span>
+                </h1>
+                <p class="hero__statement" data-hero style="--i:3">
+                    Explore the traditions, stories, art, architecture and knowledge that have
+                    shaped India's diverse cultural identity across generations.
+                </p>
+                <div class="hero__cta" data-hero style="--i:4">
+                    <a class="btn btn--saffron" href="#explore">Explore India</a>
+                    <a class="btn btn--ghost" href="#heritage">Discover Our Heritage</a>
+                </div>
+                <ul class="hero__stats" data-hero style="--i:5">
+                    <li><strong>5000+</strong><span>years of living tradition</span></li>
+                    <li><strong>22</strong><span>classical music traditions</span></li>
+                    <li><strong>10</strong><span>classical dance forms</span></li>
+                </ul>
+            </div>
+
+            <a href="#heritage" class="hero__scroll" aria-label="Scroll down to explore the heritage section">
+                <svg class="hero__scroll-diya" viewBox="0 0 120 110" aria-hidden="true"><use href="#sprite-diya"/></svg>
+                <span>Scroll to explore</span>
+            </a>
+        </section>
+
+        <!--
+            HERITAGE INTRODUCTION
+            One of the most prominent sections of the site: India's cultural
+            richness told through twelve living dimensions.
+        -->
+        <section class="section section--heritage" id="heritage">
+            <div class="container">
+                <header class="section__head" data-reveal>
+                    <p class="eyebrow">Our Heritage</p>
+                    <h2 class="section__title">The Rich Cultural Heritage of India</h2>
+                    <p class="section__intro">
+                        India is not a single story — it is thousands of stories, told in many voices.
+                        Languages, traditional knowledge, art, music, dance, architecture, festivals,
+                        cuisine, clothing, crafts, customs and the ancient art of storytelling together
+                        form one of the world's oldest and most diverse living heritages.
+                    </p>
+                </header>
+
+                <!-- Twelve dimensions of India's cultural richness -->
+                <div class="heritage-grid" data-reveal-group>
+                    <article class="heritage-card" data-reveal>
+                        <span class="heritage-card__icon" aria-hidden="true">🗣️</span>
+                        <h3>Living Languages</h3>
+                        <p>Hindi, Tamil, Bengali, Marathi, Telugu, Punjabi and many more — each language carries its own poetry, proverbs and music.</p>
+                    </article>
+                    <article class="heritage-card" data-reveal>
+                        <span class="heritage-card__icon" aria-hidden="true">📜</span>
+                        <h3>Traditional Knowledge</h3>
+                        <p>Generations of wisdom — about herbs, seasons, stars and soil — passed down from elders to children.</p>
+                    </article>
+                    <article class="heritage-card" data-reveal>
+                        <span class="heritage-card__icon" aria-hidden="true">🎨</span>
+                        <h3>Art</h3>
+                        <p>From the dense lines of Madhubani to the graceful figures of Warli — India's visual memory, painted on walls, scrolls and cloth.</p>
+                    </article>
+                    <article class="heritage-card" data-reveal>
+                        <span class="heritage-card__icon" aria-hidden="true">🎵</span>
+                        <h3>Music</h3>
+                        <p>Ragas that follow the hours of the day, the great Carnatic and Hindustani traditions, and the folk songs of every region.</p>
+                    </article>
+                    <article class="heritage-card" data-reveal>
+                        <span class="heritage-card__icon" aria-hidden="true">💃</span>
+                        <h3>Dance</h3>
+                        <p>Ten classical forms and hundreds of folk traditions — from Bharatanatyam to Bihu, Garba to Ghoomar.</p>
+                    </article>
+                    <article class="heritage-card" data-reveal>
+                        <span class="heritage-card__icon" aria-hidden="true">🏛️</span>
+                        <h3>Architecture</h3>
+                        <p>Temple gopurams, Mughal domes, jharokha balconies, stepwells and forts — stone written in the language of faith and craft.</p>
+                    </article>
+                    <article class="heritage-card" data-reveal>
+                        <span class="heritage-card__icon" aria-hidden="true">🎉</span>
+                        <h3>Festivals</h3>
+                        <p>A year-round calendar of celebration — from Bihu to Onam, Holi to Pongal — every season has its own colour and song.</p>
+                    </article>
+                    <article class="heritage-card" data-reveal>
+                        <span class="heritage-card__icon" aria-hidden="true">🍲</span>
+                        <h3>Cuisine</h3>
+                        <p>A food culture as varied as its people — spiced curries of the north, banana-leaf feasts of the south, river fish of the east.</p>
+                    </article>
+                    <article class="heritage-card" data-reveal>
+                        <span class="heritage-card__icon" aria-hidden="true">👘</span>
+                        <h3>Clothing</h3>
+                        <p>Kanjeevaram silks, Ajraks, the chikankari of Lucknow, the mekhela chador of Assam — cloth as cultural identity.</p>
+                    </article>
+                    <article class="heritage-card" data-reveal>
+                        <span class="heritage-card__icon" aria-hidden="true">🧵</span>
+                        <h3>Crafts</h3>
+                        <p>Handmade for millennia — embroidery, block printing, metalwork, pottery and weaving by skilled hands.</p>
+                    </article>
+                    <article class="heritage-card" data-reveal>
+                        <span class="heritage-card__icon" aria-hidden="true">🤝</span>
+                        <h3>Customs</h3>
+                        <p>Marriage rites, harvest thanks, new-year greetings and monsoon rituals — the social grammar of Indian life.</p>
+                    </article>
+                    <article class="heritage-card" data-reveal>
+                        <span class="heritage-card__icon" aria-hidden="true">📖</span>
+                        <h3>Storytelling</h3>
+                        <p>The Ramayana, the Mahabharata, the Panchatantra, folk tales and puppet theatre — stories that shaped values across generations.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!--
+            HERITAGE CATEGORIES
+            "Many Traditions. One Heritage." — six major categories,
+            each with iconic examples, presented as large visual cards.
+        -->
+        <section class="section section--categories" aria-labelledby="categories-title">
+            <div class="container">
+                <header class="section__head" data-reveal>
+                    <p class="eyebrow">Traditions &amp; Forms</p>
+                    <h2 class="section__title" id="categories-title">Many Traditions. One Heritage.</h2>
+                    <p class="section__intro">
+                        Every region of India contributes its own chapter to a single, shared story.
+                        These are six of the chapters — each one deep enough to spend a lifetime in.
+                    </p>
+                </header>
+
+                <div class="cat-grid" data-reveal-group>
+                    <article class="cat-card" data-reveal>
+                        <div class="cat-card__media">
+                            <img src="assets/img/cat-architecture.png" alt="Illustration of Indian temple architecture — a gopuram, a Mughal arch and a temple spire" loading="lazy" />
+                        </div>
+                        <div class="cat-card__body">
+                            <h3><span aria-hidden="true">🏛️</span> Architecture</h3>
+                            <ul class="chip-row" aria-label="Examples of Indian architecture">
+                                <li class="chip">Taj Mahal</li>
+                                <li class="chip">Hampi</li>
+                                <li class="chip">Konark</li>
+                                <li class="chip">Sanchi</li>
+                            </ul>
+                        </div>
+                    </article>
+
+                    <article class="cat-card" data-reveal>
+                        <div class="cat-card__media">
+                            <img src="assets/img/cat-dance.png" alt="Illustration of a classical Bharatanatyam dancer in a red and gold sari" loading="lazy" />
+                        </div>
+                        <div class="cat-card__body">
+                            <h3><span aria-hidden="true">💃</span> Classical &amp; Folk Dance</h3>
+                            <ul class="chip-row" aria-label="Examples of Indian dance forms">
+                                <li class="chip">Bharatanatyam</li>
+                                <li class="chip">Kathak</li>
+                                <li class="chip">Odissi</li>
+                                <li class="chip">Kathakali</li>
+                                <li class="chip">Bihu</li>
+                                <li class="chip">Garba</li>
+                            </ul>
+                        </div>
+                    </article>
+
+                    <article class="cat-card" data-reveal>
+                        <div class="cat-card__media">
+                            <img src="assets/img/cat-art.png" alt="Madhubani-style folk painting with peacocks, a lotus pond and a sun with a face" loading="lazy" />
+                        </div>
+                        <div class="cat-card__body">
+                            <h3><span aria-hidden="true">🎨</span> Traditional Art</h3>
+                            <ul class="chip-row" aria-label="Examples of Indian traditional art">
+                                <li class="chip">Madhubani</li>
+                                <li class="chip">Warli</li>
+                                <li class="chip">Pattachitra</li>
+                                <li class="chip">Kalamkari</li>
+                            </ul>
+                        </div>
+                    </article>
+
+                    <article class="cat-card" data-reveal>
+                        <div class="cat-card__media">
+                            <img src="assets/img/cat-crafts.png" alt="Still life of Indian handicrafts — phulkari shawl, block print textile, brass diya and blue pottery" loading="lazy" />
+                        </div>
+                        <div class="cat-card__body">
+                            <h3><span aria-hidden="true">🧵</span> Handicrafts</h3>
+                            <ul class="chip-row" aria-label="Examples of Indian handicrafts">
+                                <li class="chip">Chikankari</li>
+                                <li class="chip">Phulkari</li>
+                                <li class="chip">Dhokra</li>
+                                <li class="chip">Blue Pottery</li>
+                            </ul>
+                        </div>
+                    </article>
+
+                    <article class="cat-card" data-reveal>
+                        <div class="cat-card__media">
+                            <img src="assets/img/cat-music.png" alt="Illustration of an Indian classical music concert with tabla and harmonium" loading="lazy" />
+                        </div>
+                        <div class="cat-card__body">
+                            <h3><span aria-hidden="true">🎵</span> Music</h3>
+                            <ul class="chip-row" aria-label="Examples of Indian musical traditions">
+                                <li class="chip">Hindustani</li>
+                                <li class="chip">Carnatic</li>
+                                <li class="chip">Folk traditions</li>
+                            </ul>
+                        </div>
+                    </article>
+
+                    <article class="cat-card" data-reveal>
+                        <div class="cat-card__media">
+                            <img src="assets/img/cat-cuisine.png" alt="South Indian meal on a banana leaf with dosa, idli, sambar and filter coffee" loading="lazy" />
+                        </div>
+                        <div class="cat-card__body">
+                            <h3><span aria-hidden="true">🍲</span> Cuisine</h3>
+                            <ul class="chip-row" aria-label="Examples of regional Indian cuisines">
+                                <li class="chip">South Indian thali</li>
+                                <li class="chip">Rajasthani</li>
+                                <li class="chip">Bengali</li>
+                                <li class="chip">Punjabi</li>
+                                <li class="chip">Kerala sadya</li>
+                            </ul>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!--
+            CULTURAL HERITAGE MAP / EXPLORER
+            The main interactive feature of the prototype.
+            A stylised map of India is divided into six cultural regions.
+            Selecting a region (on the map or via the buttons) dynamically
+            fills the detail panel with that region's culture — no page reload.
+        -->
+        <section class="section section--explore" id="explore">
+            <div class="container">
+                <header class="section__head" data-reveal>
+                    <p class="eyebrow eyebrow--light">Cultural Heritage Map</p>
+                    <h2 class="section__title section__title--light">Explore India's Cultural Heritage</h2>
+                    <p class="section__intro section__intro--light">
+                        One country, six cultural worlds. Choose a region on the map — or use the
+                        buttons — to discover its art, music, dance, cuisine, festivals and living knowledge.
+                    </p>
+                </header>
+
+                <div class="explore__layout">
+                    <!-- Left: the interactive stylised map + accessible region buttons -->
+                    <div class="explore__map-wrap" data-reveal>
+                        <svg class="india-map" viewBox="0 0 420 520" role="group" aria-label="Stylised map of India divided into six cultural regions">
+                            <defs>
+                                <!-- The India outline; all region shapes are clipped to it -->
+                                <clipPath id="india-clip">
+                                    <path d="M96 102 L118 84 L138 52 L162 34 L188 30 L206 44 L216 66 L238 86 L252 112 L262 136 L280 148 L300 152 L312 146 L340 142 L372 146 L402 156 L412 168 L398 180 L368 184 L338 190 L318 196 L306 204 L300 220 L292 244 L284 268 L274 296 L258 326 L244 354 L230 382 L218 408 L210 426 L206 432 L196 424 L184 402 L172 378 L160 350 L150 324 L142 298 L134 276 L126 258 L112 250 L98 246 L86 250 L74 262 L64 278 L60 294 L66 304 L80 296 L92 284 L100 268 L102 248 L104 228 L103 206 L100 182 L98 156 L97 130 Z"/>
+                                </clipPath>
+                            </defs>
+                            <g clip-path="url(#india-clip)">
+                                <path class="map-region is-selected" data-region="north" d="M30 20 H330 V152 H30 Z"/>
+                                <path class="map-region" data-region="west" d="M30 152 H168 V330 H30 Z"/>
+                                <path class="map-region" data-region="central" d="M168 152 H268 V330 H168 Z"/>
+                                <path class="map-region" data-region="east" d="M268 152 H330 V330 H268 Z"/>
+                                <path class="map-region" data-region="south" d="M30 330 H330 V470 H30 Z"/>
+                                <path class="map-region" data-region="northeast" d="M306 136 H420 V212 H306 Z"/>
+                            </g>
+                            <path class="india-map__outline" d="M96 102 L118 84 L138 52 L162 34 L188 30 L206 44 L216 66 L238 86 L252 112 L262 136 L280 148 L300 152 L312 146 L340 142 L372 146 L402 156 L412 168 L398 180 L368 184 L338 190 L318 196 L306 204 L300 220 L292 244 L284 268 L274 296 L258 326 L244 354 L230 382 L218 408 L210 426 L206 432 L196 424 L184 402 L172 378 L160 350 L150 324 L142 298 L134 276 L126 258 L112 250 L98 246 L86 250 L74 262 L64 278 L60 294 L66 304 L80 296 L92 284 L100 268 L102 248 L104 228 L103 206 L100 182 L98 156 L97 130 Z"/>
+                            <g class="india-map__labels" aria-hidden="true">
+                                <text x="195" y="95">NORTH</text>
+                                <text x="105" y="240">WEST</text>
+                                <text x="215" y="245">CENTRAL</text>
+                                <text x="295" y="258">EAST</text>
+                                <text x="205" y="398">SOUTH</text>
+                                <text x="362" y="178">NORTHEAST</text>
+                            </g>
+                        </svg>
+                        <p class="explore__map-note">A stylised cultural map of India, divided into six regions.</p>
+
+                        <div class="explore__buttons" role="group" aria-label="Select a region of India">
+                            <button class="region-btn is-selected" type="button" data-region="north" aria-pressed="true">North India</button>
+                            <button class="region-btn" type="button" data-region="west" aria-pressed="false">West India</button>
+                            <button class="region-btn" type="button" data-region="central" aria-pressed="false">Central India</button>
+                            <button class="region-btn" type="button" data-region="east" aria-pressed="false">East India</button>
+                            <button class="region-btn" type="button" data-region="south" aria-pressed="false">South India</button>
+                            <button class="region-btn" type="button" data-region="northeast" aria-pressed="false">Northeast India</button>
+                        </div>
+                    </div>
+
+                    <!-- Right: the dynamic regional detail panel (filled by script.js) -->
+                    <div class="explore__panel" id="region-panel" data-reveal>
+                        <div class="explore__panel-head">
+                            <img class="explore__region-img" id="region-image" src="assets/img/region-north.png" alt="Stylised illustration of North Indian heritage — the Taj Mahal before Himalayan peaks" loading="lazy" />
+                            <div class="explore__panel-title">
+                                <h3 id="region-name">North India</h3>
+                                <p id="region-tagline">The heartland of classical music, dance and the great Mughal–Indic synthesis.</p>
+                            </div>
+                        </div>
+                        <dl class="explore__fields" id="region-fields">
+                            <dt><span aria-hidden="true">🪷</span> Culture</dt>
+                            <dd>The heartland of classical arts — where the Ganga meets the Himalaya, where Mughal–Indic synthesis shaped music, poetry and architecture, and where yoga and meditation traditions were born.</dd>
+                            <dt><span aria-hidden="true">🎨</span> Traditional Art</dt>
+                            <dd>Mughal and Pahari miniature painting, Thangka art of Ladakh, and the vibrant appliqué and embroidery of the plains.</dd>
+                            <dt><span aria-hidden="true">🎵</span> Music</dt>
+                            <dd>Hindustani classical tradition of ragas and talas, the dhol of Bhangra, the shehnai, and folk ballads of Punjab, Haryana and Uttarakhand.</dd>
+                            <dt><span aria-hidden="true">💃</span> Dance</dt>
+                            <dd>Kathak (the court dance of Uttar Pradesh and Delhi), Bhangra and Giddha of Punjab, Gaur dance of the Kumaon hills, and the folk theatre of Nautanki.</dd>
+                            <dt><span aria-hidden="true">🍲</span> Cuisine</dt>
+                            <dd>The Punjabi thali of dals, rotis and dahi; kachoris of Lucknow; lassi; and the halwas and malpuas that end every meal.</dd>
+                            <dt><span aria-hidden="true">🎉</span> Festivals</dt>
+                            <dd>Lohri, Baisakhi and the winter harvest fairs of Punjab; Teej in the hill regions; Holi at Mathura and across the plains.</dd>
+                            <dt><span aria-hidden="true">👘</span> Clothing</dt>
+                            <dd>Kurtas and pajamas, the Patiala of Punjab, phulkari-stitched shawls, and the saffron-and-white of festival seasons.</dd>
+                            <dt><span aria-hidden="true">🧵</span> Crafts</dt>
+                            <dd>Phulkari of Punjab, Chikankari of Lucknow, blue pottery of Agra and Lucknow, and Pashmina weaving of Kashmir.</dd>
+                            <dt><span aria-hidden="true">🏛️</span> Heritage Sites</dt>
+                            <dd>The Taj Mahal (Agra), Red Fort and Qutub Minar (Delhi), Agra Fort, the Golden Temple (Amritsar), and the Mughal gardens of Shahjahanabad.</dd>
+                            <dt><span aria-hidden="true">📜</span> Traditional Knowledge</dt>
+                            <dd>Yoga traditions of Rishikesh, classical Ayurvedic texts, the folk healing practices of the hill regions, and the handloom and khadi traditions of the plains.</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!--
+            STORIES BEHIND OUR HERITAGE
+            A scroll-based "digital cultural museum": six chapters,
+            each an image paired with a short cultural story.
+        -->
+        <section class="section section--stories" id="traditions">
+            <div class="container">
+                <header class="section__head" data-reveal>
+                    <p class="eyebrow">Stories Behind Our Heritage</p>
+                    <h2 class="section__title">Every Tradition Has a Story</h2>
+                    <p class="section__intro">
+                        Step into a digital cultural museum. These are six chapters from the
+                        endless archive of Indian life — each one a door into a deeper history.
+                    </p>
+                </header>
+
+                <div class="stories">
+                    <article class="story" data-reveal>
+                        <div class="story__media">
+                            <img src="assets/img/craft-madhubani.png" alt="Madhubani folk painting with dancers and peacocks" loading="lazy" />
+                        </div>
+                        <div class="story__body">
+                            <span class="story__chapter">Chapter 01 · Art</span>
+                            <h3>The Village Painters of Mithila</h3>
+                            <p>In the villages around Madhubani in Bihar, painting has always been a family duty rather than a profession. Traditionally drawn by women on freshly plastered walls with twigs and natural dyes, Madhubani art decorated every house for weddings and festivals — a dense world of fish, peacocks, trees and suns where no space is ever left empty.</p>
+                            <p>Today the same traditions have travelled from village walls to canvases and textbooks around the world, with the village women who paint them earning their own names as artists.</p>
+                        </div>
+                    </article>
+
+                    <article class="story story--reverse" data-reveal>
+                        <div class="story__media">
+                            <img src="assets/img/cat-dance.png" alt="Classical Bharatanatyam dancer in a red and gold sari" loading="lazy" />
+                        </div>
+                        <div class="story__body">
+                            <span class="story__chapter">Chapter 02 · Dance</span>
+                            <h3>The Dance That Returned to Its Temples</h3>
+                            <p>Bharatanatyam, whose name means "the story of Rāma through dance" in one telling and "performance of meaning" in another, is one of India's oldest dance traditions. For centuries it was performed in temples by devotees, and its sculptural postures can still be read on the pillar carvings of South Indian temples.</p>
+                            <p>In the twentieth century, artists such as Rukmini Devi Arundale took the dance from the temple courtyard to the concert stage — while keeping its grammar of rhythm, posture and expression, or abhinaya, largely intact.</p>
+                        </div>
+                    </article>
+
+                    <article class="story" data-reveal>
+                        <div class="story__media">
+                            <img src="assets/img/story-hampi.png" alt="Illustration of Hampi's stone chariot temple among giant boulders" loading="lazy" />
+                        </div>
+                        <div class="story__body">
+                            <span class="story__chapter">Chapter 03 · Monument</span>
+                            <h3>The City That Sits on Boulders</h3>
+                            <p>For more than three centuries, the landscape of boulders at Hampi in Karnataka was the capital of the Vijayanagara Empire — a city of temples, market squares, water tanks and royal gardens that drew travellers from across Asia.</p>
+                            <p>What remains is one of the great open-air museums of the world: the stone chariot of Vittleswara, the steps of the Lotus Mahal, and the living Virupaksha temple, still ringing with festival processions. It has been a UNESCO World Heritage Site since 1986.</p>
+                        </div>
+                    </article>
+
+                    <article class="story story--reverse" data-reveal>
+                        <div class="story__media">
+                            <img src="assets/img/fest-diwali.png" alt="Rows of glowing diya lamps and a marigold rangoli during Diwali" loading="lazy" />
+                        </div>
+                        <div class="story__body">
+                            <span class="story__chapter">Chapter 04 · Festival</span>
+                            <h3>Why Diwali Lights a Million Windows</h3>
+                            <p>Diwali is the festival of lights — and like most Indian festivals, it is many festivals at once. In the north it is connected with the homecoming of Lord Rama to Ayodhya; in the south, with the worship of Krishna, Lakshmi or Durga, depending on the tradition.</p>
+                            <p>What unites them is the act itself: a clay lamp placed at the threshold, a rangoli spread at the door, a window lit for the returning dark — a simple, five-thousand-year-old promise that light is the default setting of home.</p>
+                        </div>
+                    </article>
+
+                    <article class="story" data-reveal>
+                        <div class="story__media">
+                            <img src="assets/img/craft-kalamkari.png" alt="Kalamkari hand-painted textile with floral and bird motifs" loading="lazy" />
+                        </div>
+                        <div class="story__body">
+                            <span class="story__chapter">Chapter 05 · Craft</span>
+                            <h3>Cloth That Tells Stories</h3>
+                            <p>The word kalamkari means "pen work" — painting on cloth with a bamboo pen. Two great traditions bear the name: the temple cloth of Sriperumbudur in Tamil Nadu, painted with mythological scenes that once clothed idols, and the Malkajgiri painting of Andhra Pradesh, used for household drape and decoration.</p>
+                            <p>Both rely on dyes drawn from the earth itself — indigo for blue, myrobalan and pomegranate rind for brown, turmeric and kermes for the rest — making every cloth a small, wearable manuscript.</p>
+                        </div>
+                    </article>
+
+                    <article class="story story--reverse" data-reveal>
+                        <div class="story__media">
+                            <img src="assets/img/fest-onam.png" alt="Kerala Onam with a pookalam floral carpet and a banana-leaf feast" loading="lazy" />
+                        </div>
+                        <div class="story__body">
+                            <span class="story__chapter">Chapter 06 · Festival</span>
+                            <h3>The Ten Days the Sea Returns Home</h3>
+                            <p>Onam is Kerala's harvest festival, and its story is about a king: Mahabali, a just ruler who, legend says, was sent below the earth — but who returns to Kerala once every year, for ten days, to live again among his people.</p>
+                            <p>Each morning of Onam, households add a ring to the pookalam, a huge flower carpet in the entrance, until it becomes a statement in itself. Then comes the sadya — the grand banana-leaf feast — and, on the backwaters, the thunder of snake-boat races.</p>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!--
+            TRADITIONAL KNOWLEDGE
+            Generational knowledge systems. Worded carefully — this is a
+            cultural-education prototype and makes no medical claims.
+        -->
+        <section class="section section--knowledge" aria-labelledby="knowledge-title">
+            <div class="container">
+                <header class="section__head" data-reveal>
+                    <p class="eyebrow">Traditional Knowledge</p>
+                    <h2 class="section__title" id="knowledge-title">Knowledge Passed Through Generations</h2>
+                    <p class="section__intro">
+                        Long before libraries and laboratories, India's knowledge lived in hands,
+                        songs and seasons. These traditions are studied, documented and still practised
+                        today — as heritage, as science and as daily life.
+                    </p>
+                </header>
+
+                <div class="knowledge-grid" data-reveal-group>
+                    <article class="knowledge-card" data-reveal>
+                        <span class="knowledge-card__icon" aria-hidden="true">🌿</span>
+                        <h3>Ayurveda</h3>
+                        <p>One of the world's oldest systematic medical traditions, documented in classical texts. Its herbal and lifestyle knowledge continues to influence wellness practices today; any medical use should be guided by qualified professionals.</p>
+                    </article>
+                    <article class="knowledge-card" data-reveal>
+                        <span class="knowledge-card__icon" aria-hidden="true">🧘</span>
+                        <h3>Yoga</h3>
+                        <p>Posture, breath and meditation rooted in classical texts such as the Yoga Sutras — now practised across the world, both as exercise and as a contemplative discipline.</p>
+                    </article>
+                    <article class="knowledge-card" data-reveal>
+                        <span class="knowledge-card__icon" aria-hidden="true">🧶</span>
+                        <h3>Handloom &amp; Weaving</h3>
+                        <p>From khadi to Kanjeevaram, the loom, the shuttle and the pattern are knowledge — techniques of weave, tension and design carried through weaving communities for generations.</p>
+                    </article>
+                    <article class="knowledge-card" data-reveal>
+                        <span class="knowledge-card__icon" aria-hidden="true">🎭</span>
+                        <h3>Folk Storytelling</h3>
+                        <p>Puppet shows (kathputli), Nautanki street theatre, rama-kathas and village storytellers keep the epics and folk tales alive as living performance, not just old books.</p>
+                    </article>
+                    <article class="knowledge-card" data-reveal>
+                        <span class="knowledge-card__icon" aria-hidden="true">🏺</span>
+                        <h3>Traditional Architecture</h3>
+                        <p>Jali screens, courtyards, stepwells and careful orientation — a body of design wisdom that cools, shelters and gathers water without a single switch.</p>
+                    </article>
+                    <article class="knowledge-card" data-reveal>
+                        <span class="knowledge-card__icon" aria-hidden="true">🌳</span>
+                        <h3>Sacred Groves &amp; Ecology</h3>
+                        <p>Forest patches protected as sacred by tribal and village communities — living libraries of biodiversity that have often survived for centuries because nobody cut the trees.</p>
+                    </article>
+                    <article class="knowledge-card" data-reveal>
+                        <span class="knowledge-card__icon" aria-hidden="true">🌶️</span>
+                        <h3>Culinary &amp; Spice Knowledge</h3>
+                        <p>Fermentation, spice blending, seasonal eating and preservation — a thousand-year-old applied science of flavour, health and storage, different in every region.</p>
+                    </article>
+                    <article class="knowledge-card" data-reveal>
+                        <span class="knowledge-card__icon" aria-hidden="true">🌾</span>
+                        <h3>Seed &amp; Farming Traditions</h3>
+                        <p>Heirloom rice and millet varieties, intercropping, and the rhythm of monsoon and rabi seasons — an agricultural calendar refined over countless harvests.</p>
+                    </article>
+                    <article class="knowledge-card" data-reveal>
+                        <span class="knowledge-card__icon" aria-hidden="true">💧</span>
+                        <h3>Traditional Water Management</h3>
+                        <p>Stepwells, tanks, johads and rainwater harvesting systems that kept cities and villages watered long before modern engineering arrived.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!--
+            ART & CRAFT PRESERVATION — "Hands That Preserve History"
+            A digital-museum gallery of eight living Indian crafts.
+            Hover (or focus) a card to zoom into the craft.
+        -->
+        <section class="section section--crafts" id="crafts">
+            <div class="container">
+                <header class="section__head" data-reveal>
+                    <p class="eyebrow eyebrow--light">Art &amp; Crafts</p>
+                    <h2 class="section__title section__title--light">Hands That Preserve History</h2>
+                    <p class="section__intro section__intro--light">
+                        Every craft carries the memory of the people who make it. Walk through this
+                        gallery of eight living Indian crafts — each one a bridge between the past and the present.
+                    </p>
+                </header>
+
+                <div class="craft-grid" data-reveal-group>
+                    <figure class="craft-card" data-reveal>
+                        <img src="assets/img/craft-madhubani.png" alt="Madhubani folk art painting with dancers, peacocks and a lotus pond" loading="lazy" />
+                        <figcaption class="craft-card__overlay">
+                            <span class="craft-card__region">Madhubani · Bihar</span>
+                            <h3>Madhubani</h3>
+                            <p>Mithila paintings in fine lines and natural colours — traditionally made by women on fresh walls for weddings and festivals.</p>
+                        </figcaption>
+                    </figure>
+
+                    <figure class="craft-card" data-reveal>
+                        <img src="assets/img/craft-warli.png" alt="Warli tribal painting with white figures dancing in a circle" loading="lazy" />
+                        <figcaption class="craft-card__overlay">
+                            <span class="craft-card__region">Mumbai region · Maharashtra</span>
+                            <h3>Warli</h3>
+                            <p>Tribal paintings in white rice paste on earth-toned walls — circles of dance, banyan trees, sun and river.</p>
+                        </figcaption>
+                    </figure>
+
+                    <figure class="craft-card" data-reveal>
+                        <img src="assets/img/craft-pattachitra.png" alt="Pattachitra scroll painting of Krishna playing the flute" loading="lazy" />
+                        <figcaption class="craft-card__overlay">
+                            <span class="craft-card__region">Puri &amp; Birbhum · Odisha</span>
+                            <h3>Pattachitra</h3>
+                            <p>Scroll paintings of mythological scenes in fine line and bold colour, a tradition that stretches back centuries.</p>
+                        </figcaption>
+                    </figure>
+
+                    <figure class="craft-card" data-reveal>
+                        <img src="assets/img/craft-kalamkari.png" alt="Kalamkari hand-painted textile with floral and bird motifs" loading="lazy" />
+                        <figcaption class="craft-card__overlay">
+                            <span class="craft-card__region">Andhra Pradesh &amp; Tamil Nadu</span>
+                            <h3>Kalamkari</h3>
+                            <p>"Pen paintings" on cloth with natural dyes like indigo and myrobalan, once used to dress temple deities.</p>
+                        </figcaption>
+                    </figure>
+
+                    <figure class="craft-card" data-reveal>
+                        <img src="assets/img/craft-phulkari.png" alt="Phulkari shawl with saffron and magenta diamond embroidery" loading="lazy" />
+                        <figcaption class="craft-card__overlay">
+                            <span class="craft-card__region">Punjab</span>
+                            <h3>Phulkari</h3>
+                            <p>"Flower work" — shawls and dupattas stitched in bright thread over khadi, the signature of the Punjabi bride.</p>
+                        </figcaption>
+                    </figure>
+
+                    <figure class="craft-card" data-reveal>
+                        <img src="assets/img/craft-chikankari.png" alt="Chikankari white cotton dupatta with delicate white-on-white embroidery" loading="lazy" />
+                        <figcaption class="craft-card__overlay">
+                            <span class="craft-card__region">Lucknow · Uttar Pradesh</span>
+                            <h3>Chikankari</h3>
+                            <p>Delicate white-on-white embroidery with dozens of named stitches, made in Lucknow for centuries.</p>
+                        </figcaption>
+                    </figure>
+
+                    <figure class="craft-card" data-reveal>
+                        <img src="assets/img/craft-dhokra.png" alt="Dhokra lost-wax bronze casting of a tribal dancer" loading="lazy" />
+                        <figcaption class="craft-card__overlay">
+                            <span class="craft-card__region">Bastar, Chotanagpur &amp; Madhya Pradesh</span>
+                            <h3>Dhokra</h3>
+                            <p>Ancient lost-wax metal casting of dancers, birds and deities, still practised by tribal craft communities.</p>
+                        </figcaption>
+                    </figure>
+
+                    <figure class="craft-card" data-reveal>
+                        <img src="assets/img/craft-bluepottery.png" alt="Blue pottery ceramic plate and vase with cobalt floral patterns" loading="lazy" />
+                        <figcaption class="craft-card__overlay">
+                            <span class="craft-card__region">Lucknow &amp; Jaipur</span>
+                            <h3>Blue Pottery</h3>
+                            <p>Cobalt-blue patterns on white ceramic, carried to India along ancient trade routes and reimagined by local artisans.</p>
+                        </figcaption>
+                    </figure>
+                </div>
+            </div>
+        </section>
+
+        <!--
+            FESTIVAL EXPLORER — "India Celebrates Diversity"
+            Select a festival to view its significance, region, traditions,
+            food, clothing, art and celebrations. Rendered by script.js.
+        -->
+        <section class="section section--festivals" id="festivals">
+            <div class="container">
+                <header class="section__head" data-reveal>
+                    <p class="eyebrow">Festival Explorer</p>
+                    <h2 class="section__title">India Celebrates Diversity</h2>
+                    <p class="section__intro">
+                        A thousand festivals, one shared calendar of joy. Choose a festival to see how
+                        India celebrates — with respect for the many ways it is lived.
+                    </p>
+                </header>
+
+                <div class="fest-chips" id="fest-chips" role="group" aria-label="Choose a festival">
+                    <button class="fest-chip is-selected" type="button" data-fest="diwali" aria-pressed="true">Diwali</button>
+                    <button class="fest-chip" type="button" data-fest="holi" aria-pressed="false">Holi</button>
+                    <button class="fest-chip" type="button" data-fest="durgapuja" aria-pressed="false">Durga Puja</button>
+                    <button class="fest-chip" type="button" data-fest="pongal" aria-pressed="false">Pongal</button>
+                    <button class="fest-chip" type="button" data-fest="onam" aria-pressed="false">Onam</button>
+                    <button class="fest-chip" type="button" data-fest="baisakhi" aria-pressed="false">Baisakhi</button>
+                    <button class="fest-chip" type="button" data-fest="navratri" aria-pressed="false">Navratri</button>
+                    <button class="fest-chip" type="button" data-fest="eid" aria-pressed="false">Eid</button>
+                    <button class="fest-chip" type="button" data-fest="christmas" aria-pressed="false">Christmas</button>
+                    <button class="fest-chip" type="button" data-fest="bihu" aria-pressed="false">Bihu</button>
+                </div>
+
+                <div class="fest-panel" id="fest-panel" data-reveal>
+                    <div class="fest-panel__media">
+                        <img id="fest-image" src="assets/img/fest-diwali.png" alt="Rows of glowing diya lamps and a marigold rangoli during Diwali" loading="lazy" />
+                        <span class="fest-panel__pattern" aria-hidden="true"></span>
+                    </div>
+                    <div class="fest-panel__body">
+                        <h3 id="fest-name">Diwali</h3>
+                        <p class="fest-panel__region" id="fest-region">📍 Celebrated across India, with regional names and customs</p>
+                        <dl class="fest-fields" id="fest-fields">
+                            <dt><span aria-hidden="true">✨</span> Significance</dt>
+                            <dd>The festival of lights, celebrating the inner light that conquers darkness. In the north it is associated with Lord Rama's homecoming; in the south, with Krishna, Durga or Lakshmi, according to tradition.</dd>
+                            <dt><span aria-hidden="true">🎭</span> Traditions</dt>
+                            <dd>Homes are cleaned and decorated with clay diyas, rangoli and marigolds. Families offer prayers to Goddess Lakshmi, light lamps at windows and doors, and share sweets with neighbours.</dd>
+                            <dt><span aria-hidden="true">🍽️</span> Food</dt>
+                            <dd>Mithai — laddoo, barfi, gulab jamun — along with halwa, chakli and other regional sweets, prepared in large quantities for sharing.</dd>
+                            <dt><span aria-hidden="true">👘</span> Clothing</dt>
+                            <dd>New festive wear — silk and printed sarees, kurtas and churidar sets; a day meant to be dressed for.</dd>
+                            <dt><span aria-hidden="true">🎨</span> Art</dt>
+                            <dd>Rangoli and kolam at doorways, diya arrangements, henna (mehndi), and lanterns and fireworks in many parts of the country.</dd>
+                            <dt><span aria-hidden="true">🎉</span> Celebrations</dt>
+                            <dd>Often a sequence of five days — Dhanteras, Chhoti Diwali, main Diwali, Govardhan Puja and Bhai Dooj — each with its own small ritual.</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!--
+            DIGITAL PRESERVATION
+            Now — and only now — the technological idea is introduced,
+            framed as a way to serve the heritage, not replace it.
+        -->
+        <section class="section section--preserve" aria-labelledby="preserve-title">
+            <div class="container">
+                <header class="section__head" data-reveal>
+                    <p class="eyebrow eyebrow--light">Digital Preservation</p>
+                    <h2 class="section__title section__title--light" id="preserve-title">Preserving Heritage for the Digital Generation</h2>
+                    <p class="section__intro section__intro--light">
+                        A proposed digital platform can make cultural information discoverable,
+                        interactive, educational and accessible online — so that younger audiences
+                        can explore their heritage the way they explore everything else: on their own devices, at their own pace, and with their own curiosity.
+                    </p>
+                </header>
+
+                <div class="preserve-grid" data-reveal-group>
+                    <article class="preserve-card" data-reveal>
+                        <span class="preserve-card__icon" aria-hidden="true">🧭</span>
+                        <h3>Discover</h3>
+                        <p>Explore India's cultural diversity — region by region, tradition by tradition — in one place.</p>
+                    </article>
+                    <article class="preserve-card" data-reveal>
+                        <span class="preserve-card__icon" aria-hidden="true">📖</span>
+                        <h3>Learn</h3>
+                        <p>Understand the stories behind the traditions — who created them, why, and how they live today.</p>
+                    </article>
+                    <article class="preserve-card" data-reveal>
+                        <span class="preserve-card__icon" aria-hidden="true">🪷</span>
+                        <h3>Preserve</h3>
+                        <p>Help keep cultural knowledge documented, accessible and alive for the generations that follow.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!--
+            STUDENT INNOVATION — "Our Innovation"
+            The SIH concept, deliberately kept visually smaller than the
+            cultural sections. Culture is the subject; technology is the enabler.
+        -->
+        <section class="section section--innovation" id="innovation">
+            <div class="container">
+                <header class="section__head" data-reveal>
+                    <p class="eyebrow">Student Innovation · Smart India Hackathon</p>
+                    <h2 class="section__title">Our Innovation</h2>
+                    <p class="section__intro">
+                        BHARAT is a <strong>working innovation prototype</strong> — a centralized, interactive
+                        cultural heritage platform built by students, combining a regional explorer,
+                        a story museum, interactive learning and an AI-assisted guide.
+                    </p>
+                    <span class="innov-badge" data-reveal>Working prototype · proposed digital solution</span>
+                </header>
+
+                <div class="innov-grid" data-reveal-group>
+                    <article class="innov-card" data-reveal>
+                        <span class="innov-card__icon" aria-hidden="true">🗺️</span>
+                        <h3>Interactive Cultural Explorer</h3>
+                        <p>A digital interface for exploring India's heritage by region and category — six regions, ten cultural dimensions each, no page reloads.</p>
+                        <ul class="chip-row">
+                            <li class="chip">6 regions</li>
+                            <li class="chip">10 fields per region</li>
+                            <li class="chip">6 categories</li>
+                        </ul>
+                    </article>
+                    <article class="innov-card" data-reveal>
+                        <span class="innov-card__icon" aria-hidden="true">🪔</span>
+                        <h3>AI Heritage Assistant</h3>
+                        <p>A heritage AI assistant that answers questions about Indian culture — connected through a secure API endpoint, with a fully offline demo mode for presentations.</p>
+                        <ul class="chip-row">
+                            <li class="chip">Gemini-ready</li>
+                            <li class="chip">Secure endpoint</li>
+                            <li class="chip">Offline demo</li>
+                        </ul>
+                    </article>
+                    <article class="innov-card" data-reveal>
+                        <span class="innov-card__icon" aria-hidden="true">📚</span>
+                        <h3>Interactive Learning</h3>
+                        <p>Quizzes, cultural stories and a visual timeline designed to make heritage learning engaging for students — not a lecture, but an experience.</p>
+                        <ul class="chip-row">
+                            <li class="chip">10-question quiz</li>
+                            <li class="chip">Story museum</li>
+                            <li class="chip">Cultural timeline</li>
+                        </ul>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!--
+            HERITAGE QUIZ
+            "How Well Do You Know India's Heritage?"
+            Fully Vanilla JS: multiple choice, score, progress,
+            correct/incorrect feedback and restart.
+        -->
+        <section class="section section--quiz" aria-labelledby="quiz-title">
+            <div class="container">
+                <header class="section__head" data-reveal>
+                    <p class="eyebrow">Interactive Learning</p>
+                    <h2 class="section__title" id="quiz-title">How Well Do You Know India's Heritage?</h2>
+                    <p class="section__intro">Ten questions across art, architecture, dance, music, festivals, crafts and regional culture. Give it a try.</p>
+                </header>
+
+                <div class="quiz" data-reveal>
+                    <div class="quiz__top">
+                        <span class="quiz__count" id="quiz-count">Question 1 of 10</span>
+                        <div class="quiz__progress" id="quiz-progress" role="progressbar" aria-label="Quiz progress" aria-valuemin="0" aria-valuemax="10" aria-valuenow="1">
+                            <span class="quiz__progress-fill" id="quiz-progress-fill"></span>
+                        </div>
+                    </div>
+
+                    <div class="quiz__body" id="quiz-body">
+                        <h3 class="quiz__question" id="quiz-question">Loading question…</h3>
+                        <div class="quiz__options" id="quiz-options"></div>
+                        <p class="quiz__feedback" id="quiz-feedback" role="status" aria-live="polite"></p>
+                        <button class="btn btn--saffron quiz__next" id="quiz-next" type="button" hidden>Next question</button>
+                    </div>
+
+                    <div class="quiz__result" id="quiz-result" hidden>
+                        <p class="quiz__result-emoji" id="quiz-result-emoji" aria-hidden="true">🏆</p>
+                        <h3 class="quiz__result-title" id="quiz-result-title"></h3>
+                        <p class="quiz__result-text" id="quiz-result-text"></p>
+                        <button class="btn btn--gold" id="quiz-restart" type="button">Try again</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!--
+            CULTURAL TIMELINE
+            "A Journey Through India's Heritage" — broad historical periods,
+            kept concise, educational and deliberately non-oversimplified.
+        -->
+        <section class="section section--timeline" aria-labelledby="timeline-title">
+            <div class="container">
+                <header class="section__head" data-reveal>
+                    <p class="eyebrow">A Cultural Journey</p>
+                    <h2 class="section__title" id="timeline-title">A Journey Through India's Heritage</h2>
+                    <p class="section__intro">
+                        A simplified map of a very deep history. India's past is not a single line —
+                        it is many lines at once — but these broad moments help orient the journey.
+                    </p>
+                </header>
+
+                <div class="timeline">
+                    <div class="timeline__item" data-reveal>
+                        <div class="timeline__marker" aria-hidden="true"><span>1</span></div>
+                        <article class="timeline__card">
+                            <span class="timeline__era">c. 3300 – 1300 BCE</span>
+                            <h3>The Indus Valley Civilisation</h3>
+                            <p>Among the world's earliest urban cultures — planned cities, drainage, the Great Bath, seals with an undeciphered script, and centres like Harappa, Mohenjo-daro and Lothal.</p>
+                            <img src="assets/img/timeline-ivc.png" alt="Illustration of an Indus Valley civilisation city with the Great Bath" loading="lazy" />
+                        </article>
+                    </div>
+
+                    <div class="timeline__item timeline__item--right" data-reveal>
+                        <div class="timeline__marker" aria-hidden="true"><span>2</span></div>
+                        <article class="timeline__card">
+                            <span class="timeline__era">c. 1500 – 500 BCE</span>
+                            <h3>The Vedic &amp; Early Period</h3>
+                            <p>The Vedic hymns and Upanishads take shape; early republics (gana-sanghas) experiment with collective governance; Buddhism and Jainism arise, and the roots of classical music and philosophy are laid.</p>
+                        </article>
+                    </div>
+
+                    <div class="timeline__item" data-reveal>
+                        <div class="timeline__marker" aria-hidden="true"><span>3</span></div>
+                        <article class="timeline__card">
+                            <span class="timeline__era">322 BCE – 550 CE</span>
+                            <h3>The Mauryan &amp; Gupta Age</h3>
+                            <p>Ashoka's edicts are carved in stone; the great stupa at Sanchi rises; and the Natya Shastra codifies the arts of dance and drama. The later Gupta age is often called India's first "classical age."</p>
+                        </article>
+                    </div>
+
+                    <div class="timeline__item timeline__item--right" data-reveal>
+                        <div class="timeline__marker" aria-hidden="true"><span>4</span></div>
+                        <article class="timeline__card">
+                            <span class="timeline__era">600 – 1200 CE</span>
+                            <h3>The Age of Temples</h3>
+                            <p>Temple building flourishes across the subcontinent — the Nagara spires of the north (Khajuraho, Bishnupur) and the Dravidian gopurams of the east and south (Konark, Brihadeeswarar).</p>
+                            <img src="assets/img/timeline-temple.png" alt="Illustration of a Nagara-style North Indian temple at sunrise" loading="lazy" />
+                        </article>
+                    </div>
+
+                    <div class="timeline__item" data-reveal>
+                        <div class="timeline__marker" aria-hidden="true"><span>5</span></div>
+                        <article class="timeline__card">
+                            <span class="timeline__era">1200 – 1800 CE</span>
+                            <h3>Mughal &amp; Bhakti Synthesis</h3>
+                            <p>The Taj Mahal, Mughal gardens and miniature painting flourish, while the Bhakti and Sufi movements weave new music, poetry and a shared cultural language across communities.</p>
+                            <img src="assets/img/timeline-taj.png" alt="Illustration of the Taj Mahal at sunrise reflected in its long pool" loading="lazy" />
+                        </article>
+                    </div>
+
+                    <div class="timeline__item timeline__item--right" data-reveal>
+                        <div class="timeline__marker" aria-hidden="true"><span>6</span></div>
+                        <article class="timeline__card">
+                            <span class="timeline__era">1857 – 1947</span>
+                            <h3>Awakening &amp; Preservation</h3>
+                            <p>The colonial era brings museums and the systematic documentation of monuments — and a generation of artists, scholars and freedom fighters who work to protect heritage from neglect and looting.</p>
+                        </article>
+                    </div>
+
+                    <div class="timeline__item" data-reveal>
+                        <div class="timeline__marker" aria-hidden="true"><span>7</span></div>
+                        <article class="timeline__card">
+                            <span class="timeline__era">1947 – Today</span>
+                            <h3>Heritage for a New Generation</h3>
+                            <p>Today India counts more than 40 UNESCO World Heritage Sites. National monuments missions and digital initiatives — like the one presented here — open heritage to a whole new generation of explorers.</p>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!--
+            ABOUT + SIH POSITIONING
+            Makes the prototype nature of the project explicit,
+            and shows the concept flow: Problem → … → AI-assisted learning.
+        -->
+        <section class="section section--about" id="about">
+            <div class="container">
+                <header class="section__head" data-reveal>
+                    <p class="eyebrow">About This Project</p>
+                    <h2 class="section__title">Why We Built BHARAT</h2>
+                </header>
+
+                <!-- The concept flow: problem → solution path -->
+                <ol class="about__flow" data-reveal-group aria-label="The project's concept flow">
+                    <li class="flow-step" data-reveal>
+                        <span class="flow-step__num" aria-hidden="true">01</span>
+                        <h3>Problem</h3>
+                        <p>India's heritage is vast, but young people often lack engaging, interactive ways to explore it.</p>
+                    </li>
+                    <li class="flow-step" data-reveal>
+                        <span class="flow-step__num" aria-hidden="true">02</span>
+                        <h3>Cultural Heritage</h3>
+                        <p>Art, music, dance, architecture, festivals, crafts and knowledge — the true subject of this platform.</p>
+                    </li>
+                    <li class="flow-step" data-reveal>
+                        <span class="flow-step__num" aria-hidden="true">03</span>
+                        <h3>Digital Preservation</h3>
+                        <p>Modern web technology that keeps cultural information discoverable and accessible online.</p>
+                    </li>
+                    <li class="flow-step" data-reveal>
+                        <span class="flow-step__num" aria-hidden="true">04</span>
+                        <h3>Interactive Exploration</h3>
+                        <p>Region-by-region exploration, a story museum and a festival explorer — learning by wandering.</p>
+                    </li>
+                    <li class="flow-step" data-reveal>
+                        <span class="flow-step__num" aria-hidden="true">05</span>
+                        <h3>Student Innovation</h3>
+                        <p>Built by a student team for the Smart India Hackathon — a working prototype, not a finished product.</p>
+                    </li>
+                    <li class="flow-step" data-reveal>
+                        <span class="flow-step__num" aria-hidden="true">06</span>
+                        <h3>AI-Assisted Learning</h3>
+                        <p>A heritage AI assistant that helps — never replaces — human curation and cultural depth.</p>
+                    </li>
+                </ol>
+
+                <p class="about__text" data-reveal>
+                    India's cultural heritage is extremely diverse, but younger generations may not have
+                    engaging and interactive ways to discover, understand and digitally explore traditional
+                    knowledge, art, crafts, festivals, architecture and cultural practices.
+                    <strong>BHARAT</strong> is a proposed digital solution: a centralized, interactive cultural
+                    heritage platform that uses modern web technology to make India's diverse heritage
+                    accessible, engaging and educational. This website is a <strong>working innovation
+                    prototype</strong> — we do not claim that the problem is solved at national scale;
+                    we are building the first step.
+                </p>
+                <p class="about__tagline" data-reveal>🇮🇳 Preserve the Past. Explore the Present. Inspire the Future.</p>
+            </div>
+        </section>
+    </main>
+
+    <!--
+        FOOTER — "Discover. Preserve. Celebrate."
+    -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer__brand">Discover. Preserve. Celebrate.</p>
+            <p class="footer__text">
+                A student innovation project dedicated to making India's rich cultural heritage
+                accessible to the digital generation.
+            </p>
+            <nav class="footer__links" aria-label="Footer navigation">
+                <a href="#heritage">Heritage</a>
+                <a href="#explore">Explore</a>
+                <a href="#traditions">Traditions</a>
+                <a href="#crafts">Art &amp; Crafts</a>
+                <a href="#innovation">Innovation</a>
+                <a href="#about">About</a>
+            </nav>
+            <p class="footer__bottom">
+                © <span id="year">2026</span> BHARAT · Smart India Hackathon student prototype ·
+                Built with HTML5, CSS3 &amp; Vanilla JavaScript
+            </p>
+        </div>
+    </footer>
+
+    <!--
+        HERITAGE AI — FLOATING ASSISTANT
+        A pill button named "Heritage AI" in the bottom-right corner
+        (themed name, no icon). Clicking it opens the cultural chat box.
+        Runs in DEMO MODE by default (offline curated answers); live
+        answers are enabled via the Gemini config in script.js — either
+        through a secure API endpoint (recommended) or the API key
+        placeholder (local demos only).
+    -->
+    <button class="ai-fab" id="ai-toggle" type="button" aria-label="Open Heritage AI Chat" aria-expanded="false" aria-controls="ai-chat">
+        <span class="ai-fab__name">Heritage AI</span>
+        <span class="ai-fab__badge" aria-hidden="true"></span>
+    </button>
+
+    <section class="ai-chat" id="ai-chat" role="dialog" aria-label="Heritage AI chat">
+        <!-- No top banner: the close button floats over the message area
+             so previous answers get the full view. The assistant
+             introduces itself ("Heritage AI") in its greeting message. -->
+        <button class="ai-chat__close" id="ai-close" type="button" aria-label="Close Heritage AI Chat">✕</button>
+
+        <div class="ai-chat__messages" id="ai-messages" role="log" aria-live="polite"></div>
+
+        <div class="ai-chat__chips" id="ai-chips" aria-label="Suggested questions">
+            <button type="button" data-q="Tell me about Bharatanatyam.">Tell me about Bharatanatyam.</button>
+            <button type="button" data-q="What is Madhubani art?">What is Madhubani art?</button>
+            <button type="button" data-q="Tell me about Hampi.">Tell me about Hampi.</button>
+            <button type="button" data-q="What is the significance of Pongal?">What is the significance of Pongal?</button>
+            <button type="button" data-q="Tell me about Indian folk traditions.">Tell me about Indian folk traditions.</button>
+            <button type="button" data-q="What are some traditional crafts of Rajasthan?">Traditional crafts of Rajasthan?</button>
+        </div>
+
+        <form class="ai-chat__input" id="ai-form">
+            <label class="visually-hidden" for="ai-input">Ask about India's cultural heritage</label>
+            <!-- maxlength is a token-economy guard (keeps each request small so
+                 the Gemini TPM quota serves as many messages as possible).
+                 It is NOT a message limit — there is no cap on how many
+                 questions a user can ask. -->
+            <input type="text" id="ai-input" placeholder="Ask about a tradition, craft, festival or monument…" autocomplete="off" maxlength="800" />
+            <button type="submit" class="ai-chat__send" aria-label="Send message">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 21 3l-8.5 18-2.4-7.1L3 11.5z"/></svg>
+            </button>
+        </form>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+</html>
