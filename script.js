@@ -204,7 +204,7 @@ const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const REGIONS = {
     north: {
         name: "North India",
-        img: "assets/img/region-north.png",
+        img: "assets/img/region-north.webp",
         imgAlt: "Stylised illustration of North Indian heritage — the Taj Mahal before Himalayan peaks",
         tagline: "The heartland of classical music, dance and the great Mughal–Indic synthesis.",
         fields: {
@@ -222,7 +222,7 @@ const REGIONS = {
     },
     west: {
         name: "West India",
-        img: "assets/img/region-west.png",
+        img: "assets/img/region-west.webp",
         imgAlt: "Stylised illustration of a Rajasthani fort with a camel caravan and kites in the sky",
         tagline: "Forts, desert and long sea trade routes — the land of vivid colour and rhythm.",
         fields: {
@@ -240,7 +240,7 @@ const REGIONS = {
     },
     central: {
         name: "Central India",
-        img: "assets/img/region-central.png",
+        img: "assets/img/region-central.webp",
         imgAlt: "Stylised illustration of a Nagara temple spire in a forest with a river",
         tagline: "The forested heartland — where tribal and temple traditions have lived side by side.",
         fields: {
@@ -258,7 +258,7 @@ const REGIONS = {
     },
     east: {
         name: "East India",
-        img: "assets/img/region-east.png",
+        img: "assets/img/region-east.webp",
         imgAlt: "Stylised illustration of an ornate Durga Puja pandal with a river boat and lotus",
         tagline: "The land of rivers, rice and fine arts — where faith, literature and craft meet.",
         fields: {
@@ -276,7 +276,7 @@ const REGIONS = {
     },
     south: {
         name: "South India",
-        img: "assets/img/region-south.png",
+        img: "assets/img/region-south.webp",
         imgAlt: "Stylised illustration of a South Indian gopuram with a snake-boat race on the backwaters",
         tagline: "Classical art, temple towns and monsoon harvests — the Dravidian tradition.",
         fields: {
@@ -294,7 +294,7 @@ const REGIONS = {
     },
     northeast: {
         name: "Northeast India",
-        img: "assets/img/region-northeast.png",
+        img: "assets/img/region-northeast.webp",
         imgAlt: "Stylised illustration of a Bihu dancer with tea gardens, an elephant and a bamboo house",
         tagline: "Hills, tea and tribal kingdoms — a hundred communities, one proud identity.",
         fields: {
@@ -419,7 +419,7 @@ const REGION_FIELD_LABELS = [
 const FESTIVALS = {
     diwali: {
         name: "Diwali",
-        img: "assets/img/fest-diwali.png",
+        img: "assets/img/fest-diwali.webp",
         imgAlt: "Rows of glowing diya lamps and a marigold rangoli during Diwali",
         region: "Celebrated across India, with regional names and customs",
         fields: {
@@ -433,7 +433,7 @@ const FESTIVALS = {
     },
     holi: {
         name: "Holi",
-        img: "assets/img/fest-holi.png",
+        img: "assets/img/fest-holi.webp",
         imgAlt: "People celebrating Holi with clouds of colourful powder",
         region: "All India — especially Uttar Pradesh, Maharashtra and the Mathura–Vrindavan region",
         fields: {
@@ -447,7 +447,7 @@ const FESTIVALS = {
     },
     durgapuja: {
         name: "Durga Puja",
-        img: "assets/img/fest-durgapuja.png",
+        img: "assets/img/fest-durgapuja.webp",
         imgAlt: "An ornate Durga Puja pandal at dusk with a glowing idol of the Goddess",
         region: "West Bengal, Odisha, Jharkhand and Assam — and Hindu communities across India",
         fields: {
@@ -461,7 +461,7 @@ const FESTIVALS = {
     },
     pongal: {
         name: "Pongal",
-        img: "assets/img/fest-pongal.png",
+        img: "assets/img/fest-pongal.webp",
         imgAlt: "A brass pot of sweet pongal on a stove with a decorated bull during Pongal",
         region: "Tamil Nadu",
         fields: {
@@ -475,7 +475,7 @@ const FESTIVALS = {
     },
     onam: {
         name: "Onam",
-        img: "assets/img/fest-onam.png",
+        img: "assets/img/fest-onam.webp",
         imgAlt: "A pookalam floral carpet and a banana-leaf sadya feast during Onam",
         region: "Kerala",
         fields: {
@@ -489,7 +489,7 @@ const FESTIVALS = {
     },
     baisakhi: {
         name: "Baisakhi",
-        img: "assets/img/fest-baisakhi.png",
+        img: "assets/img/fest-baisakhi.webp",
         imgAlt: "Golden wheat fields, a dhol player and a turbaned farmer during Baisakhi",
         region: "Punjab (and Sikh communities worldwide)",
         fields: {
@@ -503,7 +503,7 @@ const FESTIVALS = {
     },
     navratri: {
         name: "Navratri",
-        img: "assets/img/fest-navratri.png",
+        img: "assets/img/fest-navratri.webp",
         imgAlt: "Women dancing Garba in colourful chaniya choli with dandiya sticks at night",
         region: "All India — nine nights of the Goddess; especially Gujarat, Rajasthan and the South",
         fields: {
@@ -517,7 +517,7 @@ const FESTIVALS = {
     },
     eid: {
         name: "Eid",
-        img: "assets/img/fest-eid.png",
+        img: "assets/img/fest-eid.webp",
         imgAlt: "A festive prayer ground at dawn with lights, a gift box and a crescent moon",
         region: "Muslim communities across India — Eid-ul-Fitr after Ramadan, and Bakrid in the month of Dhul Hijjah",
         fields: {
@@ -531,7 +531,7 @@ const FESTIVALS = {
     },
     christmas: {
         name: "Christmas",
-        img: "assets/img/fest-christmas.png",
+        img: "assets/img/fest-christmas.webp",
         imgAlt: "A decorated Indian church with a nativity scene and star lights in the evening",
         region: "Christian communities across India — with distinct local traditions in Goa, Kerala, the Northeast and the North",
         fields: {
@@ -545,7 +545,7 @@ const FESTIVALS = {
     },
     bihu: {
         name: "Bihu",
-        img: "assets/img/fest-bihu.png",
+        img: "assets/img/fest-bihu.webp",
         imgAlt: "Bihu dancers in mekhela chador with dhol and gungura in Assam's fields",
         region: "Assam",
         fields: {

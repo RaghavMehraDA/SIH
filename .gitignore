@@ -1,0 +1,22 @@
+# OS / editor cruft
+Thumbs.db
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Local tooling
+__pycache__/
+*.pyc
+
+# Never commit source artwork (PNG originals) — the site serves WebP only.
+# Regenerate placeholders with: python3 tools/gen_placeholders.py
+assets/img/*.png
+assets/img/*.tif
+assets/img/*.tiff
+assets/img/*.psd
+
+# Never commit API keys for the Heritage AI Gemini integration
+.env
+.env.*
+*.key

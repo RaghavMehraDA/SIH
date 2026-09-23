@@ -612,11 +612,11 @@ body.no-scroll {
     padding: calc(var(--nav-h) + 40px) 0 90px;
 }
 
-/* Background imagery (see assets/img/hero.png) */
+/* Background imagery (see assets/img/hero.webp) */
 .hero__bg {
     position: absolute;
     inset: 0;
-    background: url("assets/img/hero.png") center 30% / cover no-repeat;
+    background: url("assets/img/hero.webp") center 30% / cover no-repeat;
     transform: scale(1.06);
     will-change: transform;
 }
