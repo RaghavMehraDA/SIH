@@ -15,9 +15,8 @@
    8.  Festival Explorer rendering
    9.  Heritage Quiz
    10. Heritage AI — chatbox UI
-   11. Heritage AI — demo mode answers (offline, no API key)
-   12. Heritage AI — Gemini API handling (secure endpoint)
-   13. Error handling & footer year
+   11. Heritage AI — offline answers (curated bank, no network)
+   12. Error handling & footer year
    ===================================================================== */
 
 "use strict";
@@ -845,13 +844,14 @@ const QUIZ_KEYS = ["A", "B", "C", "D"];
    10. HERITAGE AI — CHATBOX UI
    The "Heritage AI" pill button (bottom-right) opens the cultural
    chat box.
-   - No artificial message limits are imposed here: availability is
-     governed entirely by the Gemini API's own rate and quota limits.
+   - Fully offline: answers come from the curated bank in section 11.
+     No API key, no network request, no message cap — it works with or
+     without an internet connection.
    - User input is ALWAYS inserted via textContent (never innerHTML),
      so the chat is safe against markup injection.
    ===================================================================== */
 
-const AI_STATE = { open: false, busy: false, greeted: false, history: [] };
+const AI_STATE = { open: false, busy: false, greeted: false };
 
 (function initHeritageAI() {
     const fab = $("#ai-toggle");
@@ -936,10 +936,9 @@ const AI_STATE = { open: false, busy: false, greeted: false, history: [] };
 
     /**
      * Send one user question and render the answer.
-     * Demo mode: offline curated answers (default).
-     * Live mode: via the secure Gemini endpoint (see section 12).
-     * NOTE: there is deliberately NO client-side message cap — the
-     * Gemini project's own rate limits determine availability.
+     * Fully offline: the reply is looked up in the curated answer bank
+     * in section 11 — no API key, no fetch, no rate limit. There is
+     * deliberately no client-side message cap either.
      */
     async function sendQuestion(text) {
         text = (text || "").trim();
@@ -951,48 +950,24 @@ const AI_STATE = { open: false, busy: false, greeted: false, history: [] };
 
         AI_STATE.busy = true;
         addMessage("user", text);
-        AI_STATE.history.push({ role: "user", content: text });
 
         const typing = showTyping();
-        let reply;
-
         try {
-            if (geminiMode() === "demo") {
-                // Demo mode: a natural pause, then a curated answer.
-                await wait(prefersReducedMotion ? 200 : 800 + Math.random() * 700);
-                reply = demoAnswer(text);
-            } else {
-                // Live mode (secure endpoint or direct Gemini API):
-                // keep the recent context window short.
-                try {
-                    reply = await callGemini(AI_STATE.history.slice(-10));
-                } catch (err) {
-                    // Quota limits are reported honestly (see below).
-                    if (err && err.code === "RATE_LIMIT") throw err;
-                    // Any other failure — bad key, offline demo room, typo in
-                    // the model name — degrades to the offline answer bank so
-                    // the visitor still gets a real answer, never a dead end.
-                    await wait(prefersReducedMotion ? 100 : 400);
-                    reply = demoAnswer(text);
-                }
-            }
+            // A short, human pause so the reply reads as an answer
+            // rather than an instant lookup. Reduced-motion users get
+            // it much faster.
+            await wait(prefersReducedMotion ? 200 : 800 + Math.random() * 700);
             hideTyping(typing);
-            addMessage("ai", reply);
-            AI_STATE.history.push({ role: "model", content: reply });
+            addMessage("ai", demoAnswer(text));
         } catch (err) {
+            // demoAnswer is a pure data lookup, so this is only a safety
+            // net: a bad input must never leave the chat stuck on
+            // the typing indicator.
             hideTyping(typing);
-            if (err && err.code === "RATE_LIMIT") {
-                // The exact graceful message required for quota errors.
-                addMessage(
-                    "ai",
-                    "Heritage AI has temporarily reached its Gemini API usage limit. Please try again later."
-                );
-            } else {
-                addMessage(
-                    "ai",
-                    "I could not reach my heritage knowledge right now. Please try again in a moment."
-                );
-            }
+            addMessage(
+                "ai",
+                "I could not put an answer together just now. Please try rephrasing your question."
+            );
         } finally {
             AI_STATE.busy = false;
             // Once the answer is displayed, show the suggested-question
@@ -1004,10 +979,11 @@ const AI_STATE = { open: false, busy: false, greeted: false, history: [] };
 })();
 
 /* =====================================================================
-   11. HERITAGE AI — DEMO MODE ANSWERS
-   Used when no secure API endpoint is configured, so the prototype
-   works perfectly in an offline SIH demo WITHOUT any API key.
-   Answers are curated, factual and cultural in tone.
+   11. HERITAGE AI — OFFLINE ANSWERS (NO NETWORK)
+   The only answer source: a curated bank of factual, cultural
+   replies matched against the question (see demoAnswer below).
+   Nothing here fetches anything, so the assistant works with the
+   connection switched off and never needs an API key.
    ===================================================================== */
 
 const DEMO_ANSWERS = [
@@ -1032,7 +1008,7 @@ const DEMO_ANSWERS = [
         text: "India's folk traditions are its living memory — music, dance, theatre and painting passed down by communities rather than institutions. Think of the Baul mystics singing in Bengal, the Lavani of Maharashtra, the Bihu dance and gungura of Assam, the Garba circles of Gujarat, the Nautanki street theatres of the north, and the white Warli paintings of the Maharashtra forests. Each region keeps its own palette, its own rhythm — together they form the folk layer under the classical arts."
     },
     {
-        keys: ["rajasthan", "rajdhan"],
+        keys: ["rajasthan", "rajdhan", "jaipur", "amber fort", "hawa mahal", "mehrangarh", "jaisalmer", "jodhpur"],
         text: "Rajasthan's traditional crafts are as varied as its deserts and forts: Ajrak block-printing and Bandhani tie-dye (with deep Sindh connections), the famous blue pottery of Jaipur, camel-leather work, Meenakari enamelware, and the miniature painting schools of Mewar and Kota. Add the mirror work of Marwar and the embroidery of the Thar villages, and you have a craft tradition that is still very much alive in the hands of today's artisans."
     },
     {
@@ -1052,7 +1028,7 @@ const DEMO_ANSWERS = [
         text: "Onam is Kerala's ten-day harvest festival, centred on the legend of King Mahabali — a just and beloved ruler who, tradition says, returns to Kerala every Onam. Each day the household pookalam, a huge flower carpet, grows a new ring; the centrepiece is the Onasadya, a grand vegetarian feast on a banana leaf with dozens of dishes. Snake-boat races (vallam kali) thunder across the backwaters, and the festival closes in a riot of colour on Thiruvonam."
     },
     {
-        keys: ["durga puja", "durga", "navratri garba"],
+        keys: ["durga puja", "durga", "navratri", "navaratri"],
         text: "Durga Puja is the celebration of Goddess Durga's victory over the buffalo demon Mahishasura, crowning the ten days of Navratri. In West Bengal, Odisha, Jharkhand and Assam, cities build intricate pandals — temporary palaces of art — where the idol is worshipped for four days, then the whole city walks with the idol to the river for immersion. Kolkata's Durga Puja is a UNESCO Intangible Cultural Heritage. The evenings belong to adda — conversation — and bhog, the festival's food."
     },
     {
@@ -1088,11 +1064,11 @@ const DEMO_ANSWERS = [
         text: "Ayurveda — literally 'the science of life' — is one of the world's oldest systematic medical traditions, documented in classical Sanskrit texts. It understands health as a balance of body, mind and nature, and its knowledge of herbs, diet, seasons and lifestyle has influenced wellness practices for millennia. As a heritage tradition it is fascinating and richly documented; for any personal medical use, qualified professional guidance is always the right path."
     },
     {
-        keys: ["cuisine", "food", "dosa", "thali", "cuisine of india"],
+        keys: ["cuisine", "food", "dosa", "thali", "cuisine of india", "biryani", "samosa", "chai", "lassi", "masala dosa", "street food", "spice", "spices", "curry", "filter coffee"],
         text: "Indian cuisine is as diverse as its people. The South eats off the banana leaf — dosa, idli, vada, sambar and rasam, with filter coffee to finish. The North embraces the thali — dals, rotis, sabzi, pickle and sweet. Bengal honours its fish and rice; Rajasthan cooks for the desert — dal-baati-churma and spices; Kerala serves the grand sadya. Spice is not a single thing here — it is a hundred regional grammars of flavour."
     },
     {
-        keys: ["music", "hindustani", "carnatic"],
+        keys: ["music", "hindustani", "carnatic", "raga", "tala", "thumri", "dhrupad", "ghazal"],
         text: "Indian classical music has two great streams. Hindustani music of the north organises sound through ragas (melodic frameworks) and talas (rhythmic cycles), with the sitar, sarod, tabla and sarangi among its instruments. Carnatic music of the south — centred on the Carnatic concert with its violin, veena and mridangam — shares the raga-tala grammar with its own distinct style and repertory. Both rest on centuries of guru-shishya (teacher-student) transmission, alongside the enormous folk traditions."
     },
     {
@@ -1100,294 +1076,240 @@ const DEMO_ANSWERS = [
         text: "India recognises ten classical dance forms: Bharatanatyam, Kathak, Odissi, Kathakali, Mohiniyattam, Kuchipudi, Manipuri, Sattriya, Chhau and Bharatanatyam's southern siblings each carry their region's story — plus hundreds of folk dances: Bihu, Garba, Bhangra, Lavani, Ghoomar... Each form is a complete language: rhythm, posture, expression and narrative, trained over years and performed in temple and concert hall alike."
     },
     {
-        keys: ["festival", "festivals"],
+        keys: ["festival", "festivals", "eid", "lohri", "baisakhi", "makar sankranti", "raksha bandhan", "janmashtami", "rath yatra", "ganesh chaturthi", "chhath", "ugadi", "dussehra"],
         text: "India's festival calendar is essentially a celebration of time itself: harvest (Pongal, Onam, Baisakhi, Bihu), seasons (Holi, Makar Sankranti), light (Diwali), devotion (Navratri, Durga Puja, Rath Yatra), and the great religious occasions of every community — Eid, Christmas and many more. If you tell me a region or a month, I can walk you through what is being celebrated there."
     },
     {
-        keys: ["heritagesite", "heritage site", "monument", "architecture"],
-        text: "India's heritage architecture spans five thousand years: the planned cities of the Indus Valley, the great stupa at Sanchi, the temple gopurams of the South and the Nagara spires of the North (Khajuraho, Konark), the Mughal marvel of the Taj Mahal, the rock-cut caves of Ellora and Ajanta, and open-air cities like Hampi. More than 40 are UNESCO World Heritage Sites. Tell me which era or region interests you and I'll take you there."
+        keys: ["heritage site", "monument", "monuments", "architecture", "temple", "temples", "fort", "forts"],
+        text: "India's heritage architecture spans five thousand years: the planned cities of the Indus Valley, the great stupa at Sanchi, the temple gopurams of the South and the Nagara spires of the North (Khajuraho, Konark), the Mughal marvel of the Taj Mahal, the rock-cut caves of Ellora and Ajanta, and open-air cities like Hampi. More than 40 are UNESCO World Heritage Sites — Ajanta and Ellora, the Taj Mahal, Hampi, the Red Fort and Jaipur's walled city among them."
+    },
+    {
+        keys: ["kathakali"],
+        text: "Kathakali is Kerala's epic dance-drama, in which stories from the Ramayana and Mahabharata are acted out through gesture, glance and stance rather than speech. Actors train for years in mudra (hand signs) and pure dance, and spend hours building the chutti — the white rice-paste border around the face — while the chenda, maddalam and chengila drums drive every change of mood."
+    },
+    {
+        keys: ["kuchipudi"],
+        text: "Kuchipudi is Andhra Pradesh's classical dance-drama, kept alive by the village that gives it its name. It moves freely between rhythmic dance and acted storytelling and traditionally opens with a dashavataram sequence. Its best-known showpiece is tarangm: the dancer balances on the rim of a brass plate with a pot of water on the head, keeping time to increasingly complex rhythm."
+    },
+    {
+        keys: ["mohiniyattam"],
+        text: "Mohiniyattam — literally the dance of the enchantress — is Kerala's graceful solo classical form. Its movement is all sway and circle: the body drifts like a palm tree in wind, the footwork stays soft and the mood is tenderness rather than force. Dancers wear Kerala's white-and-gold kasavu saree, and the form was revived in the 20th century at Kerala Kalamandalam."
+    },
+    {
+        keys: ["manipuri", "ras lila", "ras leela"],
+        text: "Manipur's classical dance is inseparable from the Ras Lila, the circular, endlessly graceful dance of Krishna with Radha and the gopis performed on moonlit nights. Nothing is abrupt: the dancers glide, the head and torso stay quiet and the shimmering potloi costume catches the light. The pung barrel drum and the pena fiddle carry it, and the tradition runs through everyday life in Manipur."
+    },
+    {
+        keys: ["sattriya", "sankaradeva"],
+        text: "Sattriya is Assam's classical dance, created in the 15th–16th century by the saint Srimanta Sankaradeva as part of his Vaishnavite bhakti movement. It began as drama performed in the sattras — the monasteries he founded — and is still taught and staged there: measured devotional movement, simple cotton costume, and the khol drum and cymbals rather than courtly spectacle. It was recognised as a classical form in 2000."
+    },
+    {
+        keys: ["chhau", "chau dance"],
+        text: "Chhau is a martial dance performed at the Chaitra Parva festival in three regional styles: the mask-wearing Purulia of West Bengal and Seraikela of Jharkhand, and the unmasked form of Mayurbhanj in Odisha. It blends fight training, acrobatics and mime — cartwheels, leaps, sword and shield — with stories from the epics. UNESCO added it to its Intangible Cultural Heritage list in 2010."
+    },
+    {
+        keys: ["garba", "dandiya", "dandiya raas"],
+        text: "Garba is Gujarat's circular Navratri dance, performed in rings around a lit clay garbi or an image of the Goddess — the circle standing for the eternal. Dancers clap and turn in unison for nine nights, usually followed by dandiya raas with decorated sticks. UNESCO inscribed the Garba of Gujarat on its Representative List of Intangible Cultural Heritage in 2023."
+    },
+    {
+        keys: ["bhangra", "giddha", "gidda"],
+        text: "Bhangra is Punjab's exuberant folk dance, tied to the Baisakhi harvest: men in bright vests leap, stomp and whirl to the dhol. Giddha, the women's form, is built on bolis — playful couplets — sung in a circle with handclaps. Both now fill weddings and diaspora stages worldwide, but at heart they are harvest music: energy, drums and a reason to celebrate."
+    },
+    {
+        keys: ["bihu"],
+        text: "Bihu is Assam's New Year and harvest festival, and the Bihu dance is its voice — young men and women moving in a line to the dhol, the bamboo pepa pipe and the gogoi, with lively hip and hand work. Assam keeps three Bihus a year: Rongali in April, the dance season; Kongali in October; and Bhogali in January, the festival of food and bonfires."
+    },
+    {
+        keys: ["kolam", "rangoli"],
+        text: "Kolam is the art drawn at the threshold each morning in Tamil Nadu: a grid of pulli (dots) joined with rice-flour lines into loops, lotuses and birds. The rice flour means the drawing feeds ants and insects — beauty and almsgiving in a single gesture. Rangoli is the broader North Indian name for door-step art in coloured powder. Both mark a welcome and a blessing."
+    },
+    {
+        keys: ["mehndi", "mehandi", "henna"],
+        text: "Mehndi — henna, from the Lawsonia inermis plant — has adorned hands and feet for celebrations across South Asia for a very long time. It is applied for weddings, Karva Chauth and Eid and left to dry so the stain deepens to a dark reddish-brown. Folklore reads a darker stain as a sign of deep love, and artists still build bridal designs from paisley, vines, peacocks and hidden initials."
+    },
+    {
+        keys: ["bandhani", "bandhej", "tie dye"],
+        text: "Bandhani — from the Sanskrit bandh, to tie — is the tie-dye of Gujarat and Rajasthan, above all Kutch, Jamnagar and Jodhpur. Thousands of tiny points of cloth are plucked and tied with thread before dyeing, then opened to leave a constellation of dots in red, yellow and black. Leheriya adds diagonal waves; gharchola grids a red saree with gold checks for brides."
+    },
+    {
+        keys: ["zardozi"],
+        text: "Zardozi is the metal-thread embroidery that once clothed Mughal courts — the word comes from the Persian zar (gold) and dozi (sewing). Real gold and silver wire has largely given way to gilt copper badla, but the technique is unchanged: couched coils, purl and spangles worked over velvet and silk for bridal wear, curtains and regalia. It survives in the karchobi frame workshops of Lucknow, Varanasi and Delhi."
+    },
+    {
+        keys: ["pashmina", "kashmiri shawl", "kani shawl"],
+        text: "Pashmina is the fine wool of the Changthangi goat of Ladakh and the Changthang plateau, so soft it must be hand-spun and hand-woven. A single shawl can take months; the prized kani shawl is built thread by thread with small wooden pins called kanis rather than being printed. The word cashmere simply derives from Kashmir, and true pashmina remains a hand craft, not a mill product."
+    },
+    {
+        keys: ["banarasi", "banarasi silk", "banaras silk", "varanasi silk"],
+        text: "Banarasi silk is the brocade of Varanasi, woven with gold and silver zari in floral and Mughal-influenced motifs. Pure katan, organza and khaddi weaves are all made here, mostly on pit looms passed through families, and a wedding saree can take weeks. The craft carries a geographical indication tag and belongs to the same city that gave India its ghats and much of its classical music."
+    },
+    {
+        keys: ["kanchipuram", "kanjivaram", "kanjeevaram"],
+        text: "Kanchipuram silk, from the temple town in Tamil Nadu, is known for its weight, lustre and contrast borders. Body, border and pallu are woven separately and interlocked in the korvai technique, so the join is structural rather than printed, and the zari motifs draw on temple gopurams, bells and peacocks. A true Kanchipuram is pure mulberry silk with tested gold-plated silver zari — built to be handed down."
+    },
+    {
+        keys: ["patola", "double ikat"],
+        text: "Patola is the double ikat silk of Patan in Gujarat, one of the rarest weaves anywhere: both warp and weft are tie-dyed before weaving, so the pattern has to align thread against thread. Only the Patidar weaving families of Patan still make the true form. A single sari can take months or years, which is why patola were heirlooms traded as far as Indonesia and worn as status symbols."
+    },
+    {
+        keys: ["qawwali", "sufi", "sufism"],
+        text: "Qawwali is Sufi devotional music meant to lift its listeners toward the divine — long, spiralling repetitions over a steady tabla and harmonium pulse. Its roots are usually traced to Amir Khusrau and the Chishti order of the 13th century, and it is sung at dargahs, above all that of Nizamuddin Auliya in Delhi. Nusrat Fateh Ali Khan carried it across the world; in South Asia it still opens weddings and Sufi festivals alike."
+    },
+    {
+        keys: ["bhajan", "kirtan", "devotional music"],
+        text: "Bhajans and kirtan are the congregational singing at the heart of bhakti: a bhajan is a devotional song to any deity, sung alone or together, while kirtan is call-and-response, the leader's line taken up by the room until it builds. Meera Bai's Krishna songs, Kabir's verses and the kirtan of Bengal's Vaishnavas are still sung daily. No stage required — a harmonium, a pair of hands and people willing to repeat."
+    },
+    {
+        keys: ["sitar", "tabla", "veena", "bansuri", "sarod", "santoor", "shehnai", "pakhawaj", "instrument", "instruments"],
+        text: "Indian classical music has a wide instrument shelf. The sitar and sarod lead Hindustani melody and the tabla its rhythm; in the Carnatic south the veena, violin and mridangam hold the stage. Around them sit the bansuri flute, the santoor of Kashmir, the shehnai of the north and the pakhawaj. Most instruments are taught the same way the music is: by ear, from guru to student."
+    },
+    {
+        keys: ["ramayana", "mahabharata", "bhagavad gita", "gita", "vedas", "vedic", "kurukshetra"],
+        text: "The Ramayana and the Mahabharata are India's great story reservoir, and the reason so much heritage art looks the way it does. The Mahabharata also contains the Bhagavad Gita, the 700-verse dialogue between Krishna and Arjuna on the field of Kurukshetra. Between them they feed dance-drama, temple sculpture, shadow puppets, miniature painting, street theatre and the Ram Lila performances that fill towns each Dussehra."
+    },
+    {
+        keys: ["sanskrit", "tamil", "hindi", "language", "languages", "script", "scripts", "linguistic", "dialect", "dialects"],
+        text: "India's linguistic heritage is unusually deep. Sanskrit carries the Vedas and a grammatical tradition still studied today, while Tamil's Sangam literature is among the world's oldest continuous literary traditions. The Constitution's Eighth Schedule recognises 22 scheduled languages, and Tamil, Sanskrit, Kannada, Telugu, Malayalam and Odia hold classical-language status. Around them sit hundreds more tongues, each with its own script, poetry, proverb and song."
+    },
+    {
+        keys: ["kumbh", "kumbh mela"],
+        text: "The Kumbh Mela is the largest peaceful gathering on earth, rotating every twelve years between four river sites: Prayagraj at the sangam of the Ganga and Yamuna, Haridwar on the Ganga, Ujjain on the Shipra and Nashik on the Godavari. Pilgrims bathe at the auspicious moment, Naga sadhus lead the procession and camps of teaching run for weeks. UNESCO inscribed it as Intangible Cultural Heritage in 2017."
+    },
+    {
+        keys: ["varanasi", "banaras", "kashi", "ganga aarti", "ghat"],
+        text: "Varanasi — Kashi, Banaras — is among the oldest continuously inhabited cities in the world and the spiritual heart of Hinduism. Dawn on the ghats is a complete cross-section of life: ritual, washing, music and prayer along the Ganga, with the Ganga aarti at Dashashwamedh each evening and the fires of Manikarnika burning without pause. It is a city of music too — Bismillah Khan's shehnai and Ravi Shankar's sitar both belong to it — and Sarnath, where the Buddha gave his first sermon, lies just outside."
+    },
+    {
+        keys: ["ajanta", "ellora", "kailasa temple", "rock cut caves", "cave"],
+        text: "Ajanta and Ellora, cut into volcanic rock near Aurangabad (Chhatrapati Sambhajinagar), are India's great cave monuments. Ajanta's roughly thirty Buddhist caves preserve murals and sculpture from the 2nd century BCE onward, the Bodhisattva Padmapani among them. Ellora's thirty-four caves place Buddhist, Hindu and Jain work side by side, and the Kailasa temple was carved downward out of a single rock in the 8th century — the largest monolithic excavation anywhere. Both are UNESCO sites."
+    },
+    {
+        keys: ["khajuraho"],
+        text: "The temples of Khajuraho in Madhya Pradesh were built by the Chandela dynasty around the 10th century. Of roughly eighty-five temples, some twenty-five survive, grouped most famously in the Western Group. Their sandstone walls are carved in horizontal bands: gods, dancers and musicians above, everyday scenes below, and the mithuna figures that made them famous abroad. What strikes most visitors first is how light and delicate the carving looks for stone."
+    },
+    {
+        keys: ["konark", "sun temple"],
+        text: "Konark's Sun Temple on the Odishan coast was built in the 13th century by King Narasimhadeva I of the Eastern Ganga dynasty as a chariot for Surya: twelve pairs of carved wheels, seven horses drawing it toward the sea, and walls crowded with horses, warriors and dancers. The wheels are read as sundials. Once called the Black Pagoda for its dark silhouette, it now stands with its sanctum lost to time, and is a UNESCO site."
+    },
+    {
+        keys: ["golden temple", "harmandir", "amritsar", "langar"],
+        text: "The Golden Temple — Sri Harmandir Sahib — sits in the Amrit Sarovar at the centre of Amritsar, its upper floors plated in gold over copper. Founded by Guru Ram Das and completed under Guru Arjan, who installed the Adi Granth there in 1604, it has three doorways and no raised threshold, so everyone enters level. The langar kitchen feeds tens of thousands of free meals a day, and the Guru Granth Sahib is read continuously."
+    },
+    {
+        keys: ["sanchi", "stupa"],
+        text: "Sanchi's Great Stupa, commissioned by the Mauryan emperor Ashoka in the 3rd century BCE, is one of the oldest stone buildings in India. The hemispherical mound holds relics and is topped by a harmika and chattra, the umbrella of honour; later additions brought the railing and the four magnificent toranas, whose reliefs narrate the Buddha's life through symbols rather than human form. A whole complex of stupas, pillars and monasteries surrounds it, and it became a UNESCO site in 1989."
+    },
+    {
+        keys: ["indus valley", "harappa", "mohenjo daro", "lothal", "dholavira"],
+        text: "The Indus Valley Civilization flourished from about 3300 to 1300 BCE across what is now Pakistan and northwest India. Mohenjo-daro and Harappa were laid out on grids with baked brick houses, covered drains and public baths — the Great Bath is at Mohenjo-daro — while seals, standardised weights and a script still unread point to a remarkably orderly culture. Lothal had a dockyard and Dholavira an elaborate water system. It declined around 1900 BCE."
+    },
+    {
+        keys: ["saree", "sari", "dhoti", "kurta", "salwar", "lehenga", "ghagra", "clothing", "dress", "attire", "khadi", "handloom"],
+        text: "Indian dress is a study in drape. The sari — six to nine yards, worn in styles from the Nivi to Kerala's gold-edged mundu and Assam's mekhela sador — sits alongside the dhoti, kurta, salwar kameez and lehenga, while turban styles mark region and community. Khadi, hand-spun on the charkha and hand-woven, carries a political history of its own, and handloom weaving remains one of the country's biggest craft employers."
+    },
+    {
+        keys: ["hinduism", "buddhism", "jainism", "sikhism", "religion", "religions"],
+        text: "India's heritage sites rarely belong to a single faith. Ajanta and Ellora carve Buddhist, Hindu and Jain caves side by side; Sarnath marks the Buddha's first sermon; the Golden Temple and the great gurdwaras carry Sikh history; Sufi dargahs and mosque architecture hold Islamic traditions; and churches, synagogues and Parsi fire temples record smaller, long-settled communities. That coexistence is itself part of the heritage."
+    },
+    {
+        keys: ["ashoka", "ashoka chakra", "lion capital", "sarnath", "maurya", "edict"],
+        text: "Emperor Ashoka ruled the Mauryan empire in the 3rd century BCE and, after the carnage of the Kalinga war, turned to dhamma — a moral code spread across the subcontinent on pillar and rock edicts written in Brahmi script. His lion capital from Sarnath, four Asiatic lions standing back to back above a wheel of twenty-four spokes, was adopted as India's national emblem in 1950, and that wheel gives the flag its Ashoka Chakra."
+    },
+    {
+        keys: ["chola", "brihadeeswarar", "brihadisvara", "brihadeshwara", "thanjavur", "tanjore", "nataraja"],
+        text: "The Brihadeeswarar Temple at Thanjavur — the Big Temple — was built by Raja Raja Chola I and finished around 1010 CE, the clearest statement of Chola power. Its vimana rises about 66 metres, capped by a single monolithic granite cupola, and its walls carry Tamil inscriptions recording the gifts and staff that kept it running. The Cholas were also great bronze casters: the dancing Shiva known as Nataraja is their most enduring image."
+    },
+    {
+        keys: ["hi", "hello", "hey", "namaste", "help", "who are you", "your name", "about you"],
+        text: "Namaste! I'm Heritage AI, an offline guide to India's cultural heritage. I answer from a curated shelf of stories rather than the open internet, so everything I say works even with no connection. Ask me about a dance form — Bharatanatyam, Kathakali, Odissi — a craft like Madhubani or Bandhani, a festival such as Diwali or Onam, or a place from Hampi to the Golden Temple. Tap a suggestion below to begin."
+    },
+    {
+        keys: ["thank you", "thanks", "thankyou", "bye", "goodbye", "see you"],
+        text: "You're welcome — it's a pleasure to share. I'll be here whether or not you have a connection. If you'd like to keep going, ask next about a dance form, a festival, a textile or a heritage site."
     }
 ];
 
 /**
- * Pick a curated offline answer for a question (demo mode).
- * Uses simple keyword matching against the answer bank above.
+ * Normalise text for matching: lowercase, drop everything that is not a
+ * letter or a digit, collapse runs of punctuation into single spaces.
+ * So "Rajasthan's" -> "rajasthan s", "mohenjo-daro" -> "mohenjo daro",
+ * and "WHAT IS DIWALI?" -> "what is diwali".
  */
-function demoAnswer(question) {
-    const q = question.toLowerCase();
-    for (const entry of DEMO_ANSWERS) {
-        if (entry.keys.some((key) => q.includes(key))) {
-            return entry.text;
-        }
-    }
-    // Friendly fallback — steer the visitor toward known topics.
-    return "That's a wonderful question — in demo mode I'm an offline guide with a curated set of heritage stories. Try asking me about Bharatanatyam, Madhubani art, Hampi, Pongal, Indian folk traditions, or the traditional crafts of Rajasthan. In live mode (connected to a secure Gemini API endpoint) I can answer much more broadly about India's rich cultural heritage.";
-}
-
-/* =====================================================================
-   12. HERITAGE AI — GEMINI API HANDLING (SECURE ENDPOINT)
-   ---------------------------------------------------------------------
-   SECURITY ARCHITECTURE (important for the SIH team):
-
-       User
-         ↓
-       Heritage Website (this static site — no secrets!)
-         ↓
-       Secure API Endpoint (a small proxy you deploy)
-         ↓
-       Gemini API  ← your GEMINI_API_KEY lives ONLY in the proxy's
-                     server-side environment variables
-         ↓
-       Heritage AI Response → User
-
-   HOW TO ENABLE LIVE MODE:
-   1. Deploy a tiny serverless function (Cloud Run / Cloud Functions /
-      any server) that:
-        - receives POST /api/heritage-ai  { "messages": [ {role, content} ] }
-        - reads GEMINI_API_KEY from its own environment (NEVER from the
-          frontend, NEVER from this file)
-        - calls the Gemini API with a system prompt like:
-            "You are Heritage AI, a knowledgeable and respectful guide to
-             India's cultural heritage. Answer in clear, educational
-             language. You speak only about Indian culture, history,
-             traditions, art, crafts, festivals, food and heritage sites."
-        - replies with JSON: { "reply": "..." }
-   2. Set GEMINI.endpoint below to your proxy URL (e.g.
-      "https://your-app.example.com/api/heritage-ai").
-   3. Leave it empty (the default) for a fully static, offline demo.
-
-   QUOTA & RATE LIMITS — "unlimited" chat experience:
-   - This website does NOT impose any artificial message limit
-     (no "10 messages / 20 per day / 100 max" caps — by design).
-   - Actual availability is governed ENTIRELY by the Gemini API
-     project's own limits (requests per minute, tokens per minute,
-     requests per day), which depend on the model and usage tier.
-   - We stay inside those limits by design so they serve as many
-     messages as possible:
-       * the AI answers in only the words required — the system prompt
-         asks for ≤ 60 words, and generationConfig.maxOutputTokens
-         (GEMINI.maxOutputTokens) is a hard cap the model can't pass
-       * a short context window (last 10 messages only)
-       * a per-message length guard on the input (token economy)
-   - When Gemini returns a rate-limit / quota error (429, 403 or a
-     RESOURCE_EXHAUSTED payload), the assistant waits for the API's
-     suggested reset window (capped at 30s) and automatically retries
-     ONCE — so brief quota pauses don't break the conversation. If the
-     retry is also limited, the chat gracefully shows:
-     "Heritage AI has temporarily reached its Gemini API usage limit.
-     Please try again later."
-     We never attempt to bypass those limits.
-   ===================================================================== */
-
-const GEMINI = {
-    /* ── API KEY (placeholder) ─────────────────────────────────────
-       For a quick LOCAL DEMO, paste your Gemini API key here:
-
-           apiKey: "AIzaSy....your key...."
-
-       ⚠️  SECURITY: a key pasted here is visible in the page source to
-       anyone who opens the website. For a public demo or production,
-       keep the key inside your secure API endpoint's environment
-       variables instead (see "endpoint" below) and leave this as the
-       placeholder. NEVER commit a real key to a shared repository.
-    */
-    apiKey: "YOUR_GEMINI_API_KEY_HERE",
-
-    // Model to call — any Gemini model your key has access to.
-    // gemini-2.5-flash is a stable, generally available model.
-    model: "gemini-2.5-flash",
-
-    /* ── REPLY LENGTH CAP (token economy) ──────────────────────────
-       Hard cap on how long each answer may be, in output tokens
-       (200 tokens ≈ ~150 words). The system prompt asks for far
-       less (~60 words); this cap is the safety net that guarantees
-       it. Smaller replies burn fewer tokens, so Gemini's
-       tokens-per-minute quota serves MANY more messages — the user
-       can keep chatting without hitting the limit quickly.
-    */
-    maxOutputTokens: 200,
-
-    /* ── SECURE ENDPOINT (recommended) ─────────────────────────────
-       If set, chat requests go to YOUR proxy (which holds the key
-       server-side) instead of using apiKey in the browser, e.g.
-       "https://your-app.example.com/api/heritage-ai"
-       Leave empty to use apiKey directly (local demo) or demo mode.
-    */
-    endpoint: "",
-
-    timeoutMs: 20000
-};
-
-// The placeholder value above — compared at runtime to detect whether
-// a real key has actually been provided.
-const GEMINI_KEY_PLACEHOLDER = "YOUR_GEMINI_API_KEY_HERE";
-
-// System prompt sent to Gemini in live mode — defines the Heritage AI
-// persona. The "required words only" rule keeps every reply short so
-// each message costs few tokens and the quota serves many more chats.
-const GEMINI_SYSTEM_PROMPT =
-    "You are Heritage AI, a warm, knowledgeable and respectful guide to India's rich " +
-    "cultural heritage. You answer questions about Indian art, architecture, classical " +
-    "and folk dance, music, festivals, crafts, cuisine, clothing, languages, traditional " +
-    "knowledge and heritage sites. " +
-    "Answer ONLY in the words required: at most 60 words, in 1–3 short sentences, with " +
-    "no preamble, no closing line and no lists unless explicitly asked. Be accurate and " +
-    "give the essential cultural context. If the user explicitly asks for detail, you may " +
-    "go up to 100 words. Make no medical claims. If a question is outside Indian cultural " +
-    "heritage, politely steer back to it in one line.";
-
-/**
- * Which mode is Heritage AI running in?
- *   "proxy"  → requests go to the secure endpoint (GEMINI.endpoint)
- *   "direct" → requests go straight to the Gemini REST API using GEMINI.apiKey
- *   "demo"   → offline curated answers (default, no key required)
- */
-function geminiMode() {
-    if (GEMINI.endpoint && GEMINI.endpoint.trim() !== "") return "proxy";
-    if (GEMINI.apiKey &&
-        GEMINI.apiKey.trim() !== "" &&
-        GEMINI.apiKey !== GEMINI_KEY_PLACEHOLDER) return "direct";
-    return "demo";
+function normaliseForMatch(text) {
+    return String(text)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
 }
 
 /**
- * Extract the server-suggested retry delay (in seconds) from a Gemini
- * error payload. Gemini usually provides it as `error.retryDelay`
- * (e.g. "5s") or inside the message ("Retry Delay - 48s").
- * Capped at 30s so a misreported value can't freeze the chat.
+ * Does a normalised question contain this key?
+ *   - exact token/phrase match scores highest;
+ *   - a single-token key of 4+ chars may be a token prefix, so
+ *     "cholas" still finds "chola" and "rajasthani" finds "rajasthan"
+ *     — but "kathakali" only scores as a prefix of "kathak", so the
+ *     exact "kathakali" entry wins on points;
+ *   - a multi-word key may be followed by more words, so
+ *     "heritage sites" still finds "heritage site".
+ *
+ * Matching on boundaries (not substrings) is what keeps "holi" out of
+ * "holistically" and "taj" out of unrelated words.
+ *
+ * @returns {number} 0 when absent, otherwise 2x for exact / 1x for prefix
  */
-function geminiRetryDelaySeconds(errorInfo) {
-    if (!errorInfo) return 0;
-    if (errorInfo.retryDelay) {
-        const secs = parseInt(String(errorInfo.retryDelay), 10);
-        if (!Number.isNaN(secs)) return Math.min(Math.max(secs, 3), 30);
+function matchKey(paddedQuestion, key) {
+    if (paddedQuestion.includes(" " + key + " ")) return key.length * 2;
+    if (key.includes(" ")) {
+        return paddedQuestion.includes(" " + key) ? key.length : 0;
     }
-    const match = /retry delay - (\d+)s/i.exec(errorInfo.message || "");
-    if (match) return Math.min(parseInt(match[1], 10), 30);
+    if (key.length < 4) return 0;
+    const tokens = paddedQuestion.split(" ");
+    for (const token of tokens) {
+        if (token.startsWith(key) && token.length - key.length <= 3) return key.length;
+    }
     return 0;
 }
 
 /**
- * Call Gemini — via the secure endpoint, or directly — with the recent
- * conversation and return the assistant's reply text.
- *
- * Rate-limit strategy (keeps the chat feeling "unlimited"):
- *   - We never bypass Gemini's own RPM/TPM/RPD limits.
- *   - On a quota error, we wait for the API's suggested reset window
- *     (capped at 30s) and automatically retry ONCE.
- *   - If the retry is also limited, a RATE_LIMIT error is thrown and
- *     the UI shows the graceful "usage limit" message.
- *
- * @param {Array<{role: "user"|"model", content: string}>} messages
- * @param {number} [attempt=1] current attempt (internal retry counter)
- * @returns {Promise<string>} the assistant's reply text
- * @throws {Error} with code "RATE_LIMIT" on quota errors, otherwise a
- *                 generic error for network / HTTP failures.
+ * Pick the curated offline answer for a question.
+ * Scores every entry by the keys it matches and returns the strongest
+ * match, so a specific topic beats a generic one ("kathakali" never
+ * falls through to the plain "kathak" answer). Falls back to a friendly
+ * pointer when nothing in the bank fits.
  */
-async function callGemini(messages, attempt = 1) {
-    // Build the request for the active live mode.
-    const mode = geminiMode();
-    let url;
-    let body;
+function demoAnswer(question) {
+    const normalised = normaliseForMatch(question);
+    const padded = " " + normalised + " ";
 
-    if (mode === "proxy") {
-        // Recommended: your secure endpoint holds the key server-side.
-        url = GEMINI.endpoint;
-        body = JSON.stringify({ messages });
-    } else {
-        // Local-demo shortcut: call the Gemini REST API directly with
-        // the key from GEMINI.apiKey (see the security note above it).
-        url = "https://generativelanguage.googleapis.com/v1beta/models/" +
-            GEMINI.model + ":generateContent?key=" +
-            encodeURIComponent(GEMINI.apiKey);
-        body = JSON.stringify({
-            systemInstruction: { parts: [{ text: GEMINI_SYSTEM_PROMPT }] },
-            generationConfig: {
-                // Hard safety net on reply length — the model can never
-                // run past this, keeping each request cheap so the
-                // token quota serves as many messages as possible.
-                maxOutputTokens: GEMINI.maxOutputTokens
-            },
-            contents: messages.map((m) => ({
-                role: m.role === "model" ? "model" : "user",
-                parts: [{ text: m.content }]
-            }))
-        });
-    }
-
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), GEMINI.timeoutMs);
-
-    let response;
-    try {
-        response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: body,
-            signal: controller.signal
-        });
-    } catch (err) {
-        // Network failure or timeout — not a quota issue.
-        throw new Error("network error: " + (err && err.message ? err.message : "unreachable"));
-    } finally {
-        clearTimeout(timer);
-    }
-
-    // Read the error payload (if any) so we can detect quota errors
-    // accurately — Gemini reports rate limits as HTTP 429, 403, or
-    // even HTTP 400 with a RESOURCE_EXHAUSTED payload.
-    let errorInfo = null;
-    if (!response.ok) {
-        let payload = null;
-        try { payload = await response.json(); } catch (e) { /* not JSON */ }
-        errorInfo = payload && payload.error ? payload.error : null;
-    }
-
-    const isQuotaError =
-        response.status === 429 ||
-        response.status === 403 ||
-        (errorInfo && (
-            errorInfo.code === 429 ||
-            errorInfo.status === "RESOURCE_EXHAUSTED" ||
-            /quota|rate.?limit|resource_?exhausted/i.test(errorInfo.message || "")
-        ));
-
-    if (isQuotaError) {
-        // Respect the API's limit: wait for its reset window and retry
-        // once, so brief quota pauses don't interrupt the conversation.
-        if (attempt < 2) {
-            const delayMs = Math.max(geminiRetryDelaySeconds(errorInfo) * 1000, 3000);
-            await wait(delayMs);
-            return callGemini(messages, attempt + 1);
+    let best = null;
+    let bestScore = 0;
+    for (const entry of DEMO_ANSWERS) {
+        let score = 0;
+        for (const key of entry.keys) {
+            score += matchKey(padded, normaliseForMatch(key));
         }
-        const err = new Error("gemini rate limit");
-        err.code = "RATE_LIMIT";
-        throw err;
+        // Strict > keeps the earliest entry on a tie, so broad keys
+        // listed later never steal a question from a specific one.
+        if (score > bestScore) {
+            bestScore = score;
+            best = entry;
+        }
     }
+    if (best) return best.text;
 
-    if (!response.ok) {
-        throw new Error("gemini api error " + response.status);
-    }
-
-    const data = await response.json();
-
-    // Accept either the simple { reply } shape (proxy) or the raw
-    // Gemini generateContent response.
-    const reply =
-        data.reply ||
-        data.message ||
-        (data.candidates &&
-            data.candidates[0] &&
-            data.candidates[0].content &&
-            data.candidates[0].content.parts &&
-            data.candidates[0].content.parts.map((p) => p.text || "").join(""));
-
-    if (!reply) throw new Error("empty response from gemini api");
-    return reply;
+    // Friendly fallback — say what was heard, then steer to real topics.
+    const heard = normalised.replace(/\s+/g, " ").slice(0, 48);
+    return (
+        "That's a wonderful question — I'm Heritage AI, an offline guide, so I answer from a " +
+        "curated shelf of heritage stories rather than from the open web, and I don't have a " +
+        "prepared one for \u201C" + heard + "\u201D yet. Try asking about Bharatanatyam, " +
+        "Kathakali, Madhubani art, Warli painting, Hampi, the Taj Mahal, Ajanta and Ellora, " +
+        "Diwali, Onam, Pongal, Indian textiles or regional cuisine."
+    );
 }
 
 /* =====================================================================
-   13. ERROR HANDLING & FOOTER YEAR
+   12. ERROR HANDLING & FOOTER YEAR
    ===================================================================== */
 
 /**

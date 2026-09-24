@@ -898,11 +898,11 @@
                     <article class="innov-card" data-reveal>
                         <span class="innov-card__icon" aria-hidden="true">🪔</span>
                         <h3>AI Heritage Assistant</h3>
-                        <p>A heritage AI assistant that answers questions about Indian culture — connected through a secure API endpoint, with a fully offline demo mode for presentations.</p>
+                        <p>A heritage AI assistant that answers questions about Indian culture entirely offline — from a curated bank of stories, so it works with the connection switched off and never needs an API key.</p>
                         <ul class="chip-row">
-                            <li class="chip">Gemini-ready</li>
-                            <li class="chip">Secure endpoint</li>
-                            <li class="chip">Offline demo</li>
+                            <li class="chip">Fully offline</li>
+                            <li class="chip">No API key</li>
+                            <li class="chip">Never dead-ends</li>
                         </ul>
                     </article>
                     <article class="innov-card" data-reveal>
@@ -1134,10 +1134,10 @@
         HERITAGE AI — FLOATING ASSISTANT
         A pill button named "Heritage AI" in the bottom-right corner
         (themed name, no icon). Clicking it opens the cultural chat box.
-        Runs in DEMO MODE by default (offline curated answers); live
-        answers are enabled via the Gemini config in script.js — either
-        through a secure API endpoint (recommended) or the API key
-        placeholder (local demos only).
+        Fully offline: replies come from a curated answer bank inside
+        script.js (section 11), so there is no API key, no network
+        request and no rate limit — the chatbox works with the
+        connection switched off and never dead-ends.
     -->
     <button class="ai-fab" id="ai-toggle" type="button" aria-label="Open Heritage AI Chat" aria-expanded="false" aria-controls="ai-chat">
         <span class="ai-fab__name">Heritage AI</span>
@@ -1163,10 +1163,9 @@
 
         <form class="ai-chat__input" id="ai-form">
             <label class="visually-hidden" for="ai-input">Ask about India's cultural heritage</label>
-            <!-- maxlength is a token-economy guard (keeps each request small so
-                 the Gemini TPM quota serves as many messages as possible).
-                 It is NOT a message limit — there is no cap on how many
-                 questions a user can ask. -->
+            <!-- maxlength keeps each question short so the offline answer
+                 matcher reads it accurately. It is NOT a message limit —
+                 there is no cap on how many questions a user can ask. -->
             <input type="text" id="ai-input" placeholder="Ask about a tradition, craft, festival or monument…" autocomplete="off" maxlength="800" />
             <button type="submit" class="ai-chat__send" aria-label="Send message">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 21 3l-8.5 18-2.4-7.1L3 11.5z"/></svg>

@@ -3,7 +3,8 @@
  *
  * Loads the real index.html + script.js into jsdom, opens the chat and
  * drives it exactly as a visitor would: greeting, suggested-question
- * chips, typed questions, and the live-mode failure path.
+ * chips and typed questions — while a recorder watches window.fetch to
+ * prove the chat answers without ever touching the network.
  *
  * Requires jsdom (installed outside the repo, see run note below).
  * Run: node tools/test_chat_e2e.js
@@ -31,7 +32,7 @@ function check(label, condition, detail) {
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /** Build a fresh page for one scenario. */
-function buildPage({ fetchImpl, scriptTransform } = {}) {
+function buildPage() {
     const virtualConsole = new VirtualConsole();
     const errors = [];
     virtualConsole.on("jsdomError", (e) => errors.push(String(e)));
@@ -58,13 +59,19 @@ function buildPage({ fetchImpl, scriptTransform } = {}) {
             disconnect() {}
         };
     window.scrollTo = window.scrollTo || (() => {});
-    if (fetchImpl) window.fetch = fetchImpl;
 
-    // Lets a scenario pretend a user pasted a real API key, without
-    // relying on `const GEMINI` leaking out of the eval scope.
-    const source = scriptTransform ? scriptTransform(js) : js;
-    window.eval(source);
-    return { dom, window, errors, source };
+    // Offline mode must mean offline. jsdom has no fetch, so install a
+    // recorder that captures the URL and rejects: any request the page
+    // attempts is both logged (for the assertion) and fatal to the
+    // answer, so it can never pass by accident.
+    const fetchLog = [];
+    window.fetch = (url) => {
+        fetchLog.push(String(url));
+        return Promise.reject(new TypeError("network disabled — Heritage AI must answer offline"));
+    };
+
+    window.eval(js);
+    return { dom, window, errors, source: js, fetchLog };
 }
 
 /** Click the floating "Heritage AI" pill. */
@@ -93,6 +100,22 @@ function answers(window) {
     });
     if (lastUser === -1) return [];
     return all.slice(lastUser + 1).filter((b) => !b.isTyping);
+}
+
+/**
+ * Poll until the answer to the most recent question lands. Offline
+ * answers take ~1.5s (a deliberate human pause), so a fixed sleep is
+ * either too short or wastefully long.
+ */
+async function waitForAnswers(window, timeoutMs = 15000) {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+        const got = answers(window);
+        const typing = bubbles(window).some((b) => b.isTyping);
+        if (got.length >= 1 && !typing) return got;
+        await wait(150);
+    }
+    return answers(window);
 }
 
 async function main() {
@@ -136,18 +159,23 @@ async function main() {
         );
         check("typing indicator shows while thinking", during.some((b) => b.isTyping));
 
-        // demo mode waits ~800-1500ms; wait it out
-        await wait(2600);
+        // Offline answers land in ~1.5s; poll rather than guess.
+        await waitForAnswers(window);
         const after = bubbles(window);
         check("typing indicator is cleared", !after.some((b) => b.isTyping));
         const ai = answers(window);
         check("an AI answer arrived", ai.length === 1, "got " + ai.length);
         check(
-            "answer is a real curated answer (not the failure text)",
+            "answer is a real answer (not the failure text)",
             ai.length === 1 &&
                 !/could not reach/i.test(ai[0].text) &&
                 !/^That's a wonderful question/i.test(ai[0].text),
             ai[0] && ai[0].text.slice(0, 60)
+        );
+        check(
+            "answer came back substantive, not truncated",
+            ai.length === 1 && ai[0].text.split(/\s+/).length >= 15,
+            ai[0] && ai[0].text.split(/\s+/).length + " words"
         );
         check("chips come back after the answer", !window.document.getElementById("ai-chips").classList.contains("is-hidden"));
         check("no uncaught page errors", errors.length === 0, errors.join(" | "));
@@ -163,8 +191,7 @@ async function main() {
         form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
 
         check("input is cleared on send", input.value === "");
-        await wait(2600);
-        const ai = answers(window);
+        const ai = await waitForAnswers(window);
         check("typed question got an answer", ai.length === 1, "got " + ai.length);
         check(
             "answer is about Madhubani",
@@ -182,11 +209,17 @@ async function main() {
         const input = window.document.getElementById("ai-input");
         input.value = "what is the airspeed velocity of an unladen swallow";
         form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
-        await wait(2600);
-        const ai = answers(window);
+        const ai = await waitForAnswers(window);
         check("got a reply", ai.length === 1, "got " + ai.length);
-        check("reply steers back to heritage topics", ai.length === 1 && /Bharatanatyam/.test(ai[0].text));
-        check("never empty", ai.length === 1 && ai[0].text.length > 50);
+        // An out-of-scope question: offline there is no model to steer
+        // it back, so the bank answers with its friendly fallback that
+        // points at topics it does know. What must never happen is a
+        // dead end, an empty bubble or an error message.
+        check(
+            "reply is a real response, not an error",
+            ai.length === 1 && !/could not reach|usage limit/i.test(ai[0].text)
+        );
+        check("never empty", ai.length === 1 && ai[0].text.length > 50, ai[0] && ai[0].text.length + " chars");
     }
 
     console.log("\n== scenario 5: Escape closes the chat ==");
@@ -211,43 +244,66 @@ async function main() {
         check("no element was injected", window.document.querySelectorAll("#ai-messages img").length === 0);
     }
 
-    console.log("\n== scenario 7: live mode failing degrades to a real answer ==");
+    console.log("\n== scenario 7: answers arrive with the network watched ==");
     {
-        // Force "direct" mode by pretending a key was pasted into the
-        // config — exactly what a user does for a local demo — and make
-        // every network call fail: the bug that used to dead-end the chat.
-        const failingFetch = () => Promise.reject(new TypeError("Failed to fetch"));
-        const { window, errors, source } = buildPage({
-            fetchImpl: failingFetch,
-            scriptTransform: (src) =>
-                src.replace('apiKey: "YOUR_GEMINI_API_KEY_HERE"', 'apiKey: "AIzaSyFakeKeyForTestingOnly123456789"')
-        });
-        // Assert the substitution really happened, otherwise this scenario
-        // would silently pass while still running in offline demo mode.
-        check(
-            "fake key really replaced the placeholder in the executed source",
-            source.includes('apiKey: "AIzaSyFakeKeyForTestingOnly123456789"') &&
-                !source.includes('apiKey: "YOUR_GEMINI_API_KEY_HERE"')
-        );
-
+        // window.fetch is a recorder that rejects. If the chat ever
+        // tries to reach out, it lands in fetchLog AND gets no answer —
+        // so this scenario fails loudly rather than silently passing.
+        const { window, errors, fetchLog, source } = buildPage();
         openChat(window);
         const form = window.document.getElementById("ai-form");
         const input = window.document.getElementById("ai-input");
-        input.value = "Tell me about Hampi.";
+
+        const got = [];
+        for (const q of ["Tell me about Hampi.", "What is the significance of Pongal?"]) {
+            input.value = q;
+            form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+            const ai = await waitForAnswers(window);
+            got.push(ai.length ? ai[0].text : null);
+        }
+
+        check("both questions were answered", got.every((t) => t && t.length > 50), JSON.stringify(got));
+        check("answers differ per question", got[0] !== got[1]);
+        check("fetch was never called", fetchLog.length === 0, fetchLog.join(" | "));
+        check("shipped source has no API endpoint or key",
+            !/generativelanguage|apiKey|AQ\.Ab8RN|\bGEMINI\b/i.test(source));
+        check("shipped source has no fetch/XHR at all",
+            !/\bfetch\s*\(|XMLHttpRequest|sendBeacon|WebSocket/.test(source));
+        check("no uncaught page errors", errors.length === 0, errors.join(" | "));
+    }
+
+    console.log("\n== scenario 8: offline answer for a question outside the chips ==");
+    {
+        // Deliberately not one of the six suggested chips: only a real
+        // entry in DEMO_ANSWERS can answer it. The generic "temple"
+        // entry would not mention the Chola dynasty, so matching the
+        // specific entry proves the bank is being searched properly.
+        const QUESTION = "Which dynasty built the Brihadeeswarar Temple in Thanjavur?";
+        const { window, errors, fetchLog } = buildPage();
+        openChat(window);
+        const form = window.document.getElementById("ai-form");
+        const input = window.document.getElementById("ai-input");
+        input.value = QUESTION;
         form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
 
-        await wait(3000);
-        const ai = answers(window);
-        check("network failure still yields an answer", ai.length === 1, "got " + ai.length);
+        const ai = await waitForAnswers(window);
+        check("an answer arrived", ai.length === 1, "got " + ai.length);
         check(
-            "answer is a real Hampi answer, not an error",
-            ai.length === 1 && /Hampi|Vijayanagara/i.test(ai[0].text),
+            "answer came from the bank, not the fallback",
+            ai.length === 1 && !/^That's a wonderful question/i.test(ai[0].text),
             ai[0] && ai[0].text.slice(0, 70)
         );
         check(
-            "no dead-end error message shown",
-            ai.length === 1 && !/could not reach/i.test(ai[0].text)
+            "answer actually addresses the question (names the Chola dynasty)",
+            ai.length === 1 && /chola/i.test(ai[0].text),
+            ai[0] && ai[0].text.slice(0, 120)
         );
+        check(
+            "answer is complete, not truncated mid-sentence",
+            ai.length === 1 && ai[0].text.length > 80 && /[.!?]["']?$/.test(ai[0].text.trim()),
+            ai[0] && JSON.stringify(ai[0].text.slice(-40))
+        );
+        check("no network call made", fetchLog.length === 0, fetchLog.join(" | "));
         check("no uncaught page errors", errors.length === 0, errors.join(" | "));
     }
 

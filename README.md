@@ -55,65 +55,36 @@ tools/          — gen_placeholders.py (fallback image generator, not part of t
 | 15 | About | Problem → Heritage → Preservation → Exploration → Innovation → AI-assisted learning |
 | 16 | Heritage AI | Floating diya chat button (bottom-right) with cultural chat UI |
 
-## Heritage AI — two modes
+## Heritage AI — offline by design
 
-### Demo mode (default — what you have now)
+The assistant answers from a **curated offline answer bank** shipped inside
+`script.js` (section 11): 55+ topics covering dance, music, festivals,
+textiles, food, languages, religions and heritage sites, plus a graceful
+fallback that steers the visitor toward topics it does know.
 
-`GEMINI.endpoint` in `script.js` is empty, so the assistant answers with a
-curated offline answer bank (24 cultural topics + graceful fallback).
-This is the recommended mode for the SIH demo: **no key, no network, always works.**
+**No API key, no network request, no rate limit.** The chatbox works with the
+connection switched off, never dead-ends, and imposes no message cap — the
+visitor can keep asking for as long as they like.
 
-### Live mode (optional — Gemini integration)
+Matching is done on word boundaries with a specificity score rather than raw
+substring search, so a precise topic beats a generic one: `"holi"` never
+matches *holistically*, and a question about `kathakali` answers `kathakali`
+rather than falling through to `kathak`.
 
-The `GEMINI` config block in `script.js` (section 12) has a clearly marked
-**API key placeholder**:
+Adding a topic is a one-line data edit — append an entry to `DEMO_ANSWERS`:
 
 ```js
-const GEMINI = {
-    apiKey:          "YOUR_GEMINI_API_KEY_HERE", // ← paste your key for a local demo
-    model:           "gemini-2.5-flash",
-    maxOutputTokens: 200,                        // ← hard cap per reply (~150 words)
-    endpoint:        "",                         // ← or set your secure proxy URL
-    timeoutMs:       20000
-};
+{ keys: ["konark", "sun temple"], text: "Konark's Sun Temple …" }
 ```
 
-Two ways to go live:
+If you ever want live answers again, add them *behind a server-side proxy*
+that holds the key in its own environment variables — never in this repo, and
+never in the page source.
 
-1. **Quick local demo** — paste your Gemini API key into `GEMINI.apiKey`.
-   The site then calls the Gemini REST API directly (the model and system
-   prompt are also configured there). ⚠️ A key in the frontend is visible
-   in the page source — fine for your own machine, **not for public hosting**.
-2. **Recommended (public/production)** — deploy a tiny serverless function
-   (Cloud Run / Cloud Functions / any server) that receives
-   `POST { messages: [{role, content}] }`, reads `GEMINI_API_KEY` **only from
-   its own environment variables**, calls Gemini (applying the same concise
-   system prompt and `maxOutputTokens` cap server-side), and replies with
-   `{ "reply": "..." }`. Then set `GEMINI.endpoint` to that URL and leave
-   `apiKey` as the placeholder.
-
-```text
-User → Heritage Website → Secure API Endpoint (your proxy) → Gemini API → response
-```
-
-**Limits:** this site imposes **no artificial message cap** — you can keep
-chatting for as long as your Gemini project's own quota allows
-(requests/minute, tokens/minute, requests/day). To make the chat feel
-seamless and "unlimited":
-
-- answers are kept short by design: the system prompt asks for **≤ 60
-  words ("only the words required")** and `maxOutputTokens: 200` is a hard
-  cap the model can't exceed; the context window is short (last 10
-  messages) and each input is capped at 800 characters — all so the token
-  quota serves as many messages as possible;
-- when Gemini returns a rate limit (429 / 403 / `RESOURCE_EXHAUSTED`), the
-  assistant **waits for the API's suggested reset window (≤ 30s) and
-  retries once automatically** — brief quota pauses don't break the
-  conversation;
-- only if the retry is also limited does it show:
-  *"Heritage AI has temporarily reached its Gemini API usage limit. Please try again later."*
-
-Gemini's limits are never bypassed — the design waits for them to reset.
+**Limits:** none imposed by the site. There is no client-side message cap,
+no quota to exhaust and no API to be throttled by — every answer is a local
+lookup, so the chat behaves identically on the first message and the
+thousandth.
 
 ## Notes
 
