@@ -71,7 +71,7 @@ The `GEMINI` config block in `script.js` (section 12) has a clearly marked
 ```js
 const GEMINI = {
     apiKey:          "YOUR_GEMINI_API_KEY_HERE", // ← paste your key for a local demo
-    model:           "gemini-2.0-flash",
+    model:           "gemini-2.5-flash",
     maxOutputTokens: 200,                        // ← hard cap per reply (~150 words)
     endpoint:        "",                         // ← or set your secure proxy URL
     timeoutMs:       20000

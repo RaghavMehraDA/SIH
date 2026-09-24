@@ -964,7 +964,17 @@ const AI_STATE = { open: false, busy: false, greeted: false, history: [] };
             } else {
                 // Live mode (secure endpoint or direct Gemini API):
                 // keep the recent context window short.
-                reply = await callGemini(AI_STATE.history.slice(-10));
+                try {
+                    reply = await callGemini(AI_STATE.history.slice(-10));
+                } catch (err) {
+                    // Quota limits are reported honestly (see below).
+                    if (err && err.code === "RATE_LIMIT") throw err;
+                    // Any other failure — bad key, offline demo room, typo in
+                    // the model name — degrades to the offline answer bank so
+                    // the visitor still gets a real answer, never a dead end.
+                    await wait(prefersReducedMotion ? 100 : 400);
+                    reply = demoAnswer(text);
+                }
             }
             hideTyping(typing);
             addMessage("ai", reply);
@@ -1181,10 +1191,11 @@ const GEMINI = {
        variables instead (see "endpoint" below) and leave this as the
        placeholder. NEVER commit a real key to a shared repository.
     */
-    apiKey: "AQ.Ab8RN6KjbaShvkFsCkmx1nATrwb4kG7hzWece64vfTqW5NKFoA",
+    apiKey: "YOUR_GEMINI_API_KEY_HERE",
 
     // Model to call — any Gemini model your key has access to.
-    model: "gemini-3.5-flash",
+    // gemini-2.5-flash is a stable, generally available model.
+    model: "gemini-2.5-flash",
 
     /* ── REPLY LENGTH CAP (token economy) ──────────────────────────
        Hard cap on how long each answer may be, in output tokens
